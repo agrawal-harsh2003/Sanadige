@@ -3,11 +3,14 @@ import { anthropic } from '../lib/anthropic'
 import { supabase } from '../lib/supabase'
 import { toolDefinitions, getTodayCatch, checkFloorAvailability, createBooking, getMenuItemDetail } from '../tools'
 import type { IncomingMessage } from '../webhooks/normalise'
+import type { StaffRole } from './staff'
 
 type HistoryMessage = { role: 'user' | 'assistant'; content: string }
 type APIMessage = Anthropic.MessageParam
 
-const SYSTEM_PROMPT = `You are the AI assistant for Sanadige, Delhi's premier coastal seafood restaurant in Chanakyapuri. You help guests with:
+export type StaffContext = { name: string; role: StaffRole }
+
+const CUSTOMER_PROMPT = `You are the AI assistant for Sanadige, Delhi's premier coastal seafood restaurant in Chanakyapuri. You help guests with:
 - Today's fresh seafood availability (use get_today_catch tool when asked)
 - Table reservations (use check_floor_availability then create_booking)
 - Menu questions (use get_menu_item_detail for specific dishes)
@@ -15,8 +18,51 @@ const SYSTEM_PROMPT = `You are the AI assistant for Sanadige, Delhi's premier co
 
 Sanadige serves coastal cuisine from Goa, Kerala, Maharashtra, and South Karnataka. The restaurant has 3 floors plus a terrace. Always be warm, knowledgeable, and brief. Never fabricate menu items or availability — always use the provided tools for live data. If asked something outside your scope, politely redirect to reservations, menu, or availability.`
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const systemWithCache = [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }] as any
+const CHEF_PROMPT = `You are an AI assistant for Sanadige restaurant staff. You are speaking with a chef.
+
+You can help with:
+- Answering questions about today's catch or menu items (use get_today_catch, get_menu_item_detail)
+- Explaining dish descriptions, preps, or allergens
+- General cooking or seafood questions
+
+WhatsApp commands available to you:
+- /catch today  ✅ Fish – note  ❌ Fish – note  (update today's catch availability)
+- /catch add <fish> | <prep1>, <prep2> | <note>  (add a new catch item)
+
+Be concise and practical. You are a backstage tool — keep responses short and actionable.`
+
+const HOST_PROMPT = `You are an AI assistant for Sanadige restaurant staff. You are speaking with a host.
+
+You can help with:
+- Checking floor availability (use check_floor_availability)
+- Looking up booking details or seating capacity
+- Answering menu questions for guests (use get_menu_item_detail, get_today_catch)
+
+The restaurant has 3 floors (floor1 cap 40, floor2 cap 35, floor3 cap 30) plus a terrace (cap 25) and a private room (cap 12). Keep responses brief — you're on the floor.`
+
+const MANAGER_PROMPT = `You are an AI assistant for Sanadige restaurant management. You are speaking with the manager.
+
+You have full context across all operations:
+- Today's catch and menu (get_today_catch, get_menu_item_detail)
+- Floor availability and bookings (check_floor_availability, create_booking)
+- Staff management is done via WhatsApp commands or the dashboard
+
+WhatsApp commands available:
+- /staff list
+- /staff add <phone> <role> <name>   (roles: chef / host / manager)
+- /staff remove <phone>
+- /catch today  ✅ Fish – note  ❌ Fish – note
+
+Be thorough when the manager asks operational questions. Surface issues proactively.`
+
+function buildSystemPrompt(staff: StaffContext | null | undefined): string {
+  if (!staff) return CUSTOMER_PROMPT
+  switch (staff.role) {
+    case 'chef': return CHEF_PROMPT
+    case 'host': return HOST_PROMPT
+    case 'manager': return MANAGER_PROMPT
+  }
+}
 
 async function getHistory(channel: string, senderId: string): Promise<HistoryMessage[]> {
   const { data, error } = await supabase
@@ -63,8 +109,12 @@ async function executeTool(name: string, input: Record<string, unknown>): Promis
   }
 }
 
-export async function handleMessage(incoming: IncomingMessage): Promise<string> {
+export async function handleMessage(incoming: IncomingMessage, staff?: StaffContext | null): Promise<string> {
   const history = await getHistory(incoming.channel, incoming.senderId)
+
+  const systemPrompt = buildSystemPrompt(staff)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const systemWithCache = [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }] as any
 
   // apiMessages holds the full conversation for the Anthropic API (content can be blocks)
   // historyMessages tracks string-only content for Supabase persistence

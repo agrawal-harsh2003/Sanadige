@@ -60,7 +60,7 @@ whatsappRouter.post('/', async (req, res) => {
     }
 
     // Everyone else (customers, hosts chatting, unrecognised senders) → Claude
-    const reply = await handleMessage(message)
+    const reply = await handleMessage(message, staff)
     await sendWhatsAppMessage(message.senderId, reply)
   } catch (err) {
     console.error('WhatsApp handler error:', err)

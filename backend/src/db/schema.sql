@@ -108,3 +108,13 @@ insert into catch_items (name, local_name, origin_region, description, recommend
 -- alter publication supabase_realtime add table daily_availability;
 -- alter publication supabase_realtime add table bookings;
 -- alter publication supabase_realtime add table orders;
+
+-- Staff directory — controls who can send admin commands via WhatsApp
+create table staff (
+  id uuid primary key default gen_random_uuid(),
+  phone text not null unique,
+  name text not null,
+  role text not null check (role in ('chef', 'host', 'manager')),
+  added_by text,
+  created_at timestamptz default now()
+);

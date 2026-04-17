@@ -11,6 +11,7 @@ const schema = z.object({
   INSTAGRAM_VERIFY_TOKEN: z.string().min(1),
   SWIFTBOOK_API_KEY: z.string().min(1).optional(),
   SWIFTBOOK_PROPERTY_ID: z.string().min(1).optional(),
+  MANAGER_PHONE: z.string().min(1).optional(),
   PORT: z.coerce.number().default(3000),
 })
 

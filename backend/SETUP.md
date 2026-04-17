@@ -10,10 +10,12 @@ Before starting, make sure you have:
 
 - Node.js 20 or higher (`node --version`)
 - npm 9 or higher (`npm --version`)
+- Docker Desktop installed and running — [docker.com/get-started](https://www.docker.com/get-started)
+- Google Cloud CLI (`gcloud`) installed — [cloud.google.com/sdk/docs/install](https://cloud.google.com/sdk/docs/install)
+- A Google Cloud account with billing enabled — [console.cloud.google.com](https://console.cloud.google.com)
 - A Supabase account — [supabase.com](https://supabase.com)
 - An Anthropic account with API access — [console.anthropic.com](https://console.anthropic.com)
 - A Meta Developer account — [developers.facebook.com](https://developers.facebook.com)
-- A Railway account — [railway.app](https://railway.app)
 - A phone number that can receive WhatsApp messages (for testing)
 
 ---
@@ -21,10 +23,7 @@ Before starting, make sure you have:
 ## Step 1 — Clone and install dependencies
 
 ```bash
-# Navigate to the backend directory
 cd backend
-
-# Install all dependencies
 npm install
 ```
 
@@ -51,11 +50,11 @@ Expected output: packages installed with no errors.
 2. Click **New query**.
 3. Open the file `backend/src/db/schema.sql` on your machine and copy its entire contents.
 4. Paste into the SQL editor and click **Run** (or press Cmd+Enter / Ctrl+Enter).
-5. You should see "Success. No rows returned." — this means all 6 tables, indexes, and seed data were created.
+5. You should see "Success. No rows returned." — this means all tables, indexes, and seed data were created.
 
 **Verify the tables were created:**
 
-Go to **Table Editor** (left sidebar). You should see: `catch_items`, `daily_availability`, `menu_items`, `bookings`, `conversations`, `orders`.
+Go to **Table Editor** (left sidebar). You should see: `catch_items`, `daily_availability`, `menu_items`, `bookings`, `conversations`, `staff`, `orders`.
 
 **Enable Realtime** (needed for the QR menu in Plan 3, optional for now):
 
@@ -95,7 +94,7 @@ Keep this key secret. It is never committed to the repository.
 
 ### 5c — Set your verify token
 
-Choose any secret string for webhook verification (e.g. `sanadige_webhook_secret_2026`). This is NOT a Meta-provided value — you make it up. Save it as `WHATSAPP_VERIFY_TOKEN`. You will enter this same string in the Meta webhook config in Step 9.
+Choose any secret string for webhook verification (e.g. `sanadige_webhook_secret_2026`). This is NOT a Meta-provided value — you make it up. Save it as `WHATSAPP_VERIFY_TOKEN`. You will enter this same string in the Meta webhook config in Step 11.
 
 ---
 
@@ -142,6 +141,9 @@ WHATSAPP_VERIFY_TOKEN=sanadige_webhook_secret_2026
 INSTAGRAM_PAGE_ACCESS_TOKEN=EAAxxxxxxx...
 INSTAGRAM_VERIFY_TOKEN=sanadige_instagram_secret_2026
 
+# Staff (optional — primary manager, auto-seeded on startup)
+MANAGER_PHONE=919XXXXXXXXX
+
 # SwiftBook (leave empty for now — fill in when API is confirmed)
 SWIFTBOOK_API_KEY=
 SWIFTBOOK_PROPERTY_ID=
@@ -162,8 +164,8 @@ npm test
 
 Expected output:
 ```
-Test Files  7 passed (7)
-     Tests  21 passed (21)
+Test Files  8 passed (8)
+     Tests  29 passed (29)
 ```
 
 If any test fails, check your Node.js version (`node --version` — must be 20+) and re-run `npm install`.
@@ -187,98 +189,133 @@ curl http://localhost:3000/health
 
 ---
 
-## Step 10 — Deploy to Railway
+## Step 10 — Set up Google Cloud project
 
-### 10a — Install Railway CLI
+### 10a — Authenticate and set project
 
 ```bash
-npm install -g @railway/cli
+gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
 ```
 
-### 10b — Log in to Railway
+Replace `YOUR_PROJECT_ID` with your GCP project ID (visible in the Google Cloud Console top bar).
+
+### 10b — Enable required APIs
 
 ```bash
-railway login
+gcloud services enable run.googleapis.com artifactregistry.googleapis.com
 ```
 
-A browser window will open. Sign in with your Railway account.
+This takes about 30 seconds. Expected output: `Operation finished successfully.`
 
-### 10c — Create a new Railway project
+### 10c — Create an Artifact Registry repository
 
 ```bash
-cd backend
-railway init
+gcloud artifacts repositories create sanadige \
+  --repository-format=docker \
+  --location=asia-south1 \
+  --description="Sanadige Docker images"
 ```
 
-- When prompted for a project name, enter: `sanadige-backend`
-- When asked to link to existing project, choose **Create new project**
-
-### 10d — Deploy
+### 10d — Configure Docker to authenticate with Artifact Registry
 
 ```bash
-railway up
-```
-
-Railway will upload the code, detect it as a Node.js project via NIXPACKS, run `npm run build && npm start`, and give you a deployment URL.
-
-Your deployment URL will look like: `https://sanadige-backend-production.up.railway.app`
-
-### 10e — Set environment variables in Railway
-
-1. Go to [railway.app](https://railway.app) and open your `sanadige-backend` project.
-2. Click on the service → **Variables** tab.
-3. Click **New Variable** and add every variable from your `.env` file (all 11 of them).
-
-Alternatively, use the CLI to bulk-import:
-
-```bash
-railway variables set \
-  SUPABASE_URL="your-value" \
-  SUPABASE_SERVICE_ROLE_KEY="your-value" \
-  ANTHROPIC_API_KEY="your-value" \
-  WHATSAPP_TOKEN="your-value" \
-  WHATSAPP_PHONE_NUMBER_ID="your-value" \
-  WHATSAPP_VERIFY_TOKEN="your-value" \
-  INSTAGRAM_PAGE_ACCESS_TOKEN="your-value" \
-  INSTAGRAM_VERIFY_TOKEN="your-value" \
-  PORT="3000"
-```
-
-### 10f — Verify deployment
-
-```bash
-curl https://your-railway-url.railway.app/health
-# {"ok":true,"ts":"2026-04-17T..."}
+gcloud auth configure-docker asia-south1-docker.pkg.dev
 ```
 
 ---
 
-## Step 11 — Register the WhatsApp webhook with Meta
+## Step 11 — Build and deploy to Cloud Run
+
+### 11a — Build the Docker image
+
+From the `backend/` directory:
+
+```bash
+docker build -t asia-south1-docker.pkg.dev/YOUR_PROJECT_ID/sanadige/backend:latest .
+```
+
+This uses the multi-stage Dockerfile: builds TypeScript in stage 1, produces a lean production image in stage 2. Build takes 1–2 minutes on first run.
+
+### 11b — Push the image to Artifact Registry
+
+```bash
+docker push asia-south1-docker.pkg.dev/YOUR_PROJECT_ID/sanadige/backend:latest
+```
+
+### 11c — Deploy to Cloud Run
+
+```bash
+gcloud run deploy sanadige-backend \
+  --image asia-south1-docker.pkg.dev/YOUR_PROJECT_ID/sanadige/backend:latest \
+  --platform managed \
+  --region asia-south1 \
+  --allow-unauthenticated \
+  --min-instances 1 \
+  --set-env-vars "SUPABASE_URL=your-value,SUPABASE_SERVICE_ROLE_KEY=your-value,ANTHROPIC_API_KEY=your-value,WHATSAPP_TOKEN=your-value,WHATSAPP_PHONE_NUMBER_ID=your-value,WHATSAPP_VERIFY_TOKEN=your-value,INSTAGRAM_PAGE_ACCESS_TOKEN=your-value,INSTAGRAM_VERIFY_TOKEN=your-value,MANAGER_PHONE=your-value"
+```
+
+`--min-instances 1` keeps one instance warm at all times — no cold start delays on the first message of the day. Cost is approximately $7–10/month.
+
+### 11d — Get your permanent service URL
+
+```bash
+gcloud run services describe sanadige-backend \
+  --platform managed \
+  --region asia-south1 \
+  --format "value(status.url)"
+```
+
+Output will look like: `https://sanadige-backend-xxxxxxxxxxxx-el.a.run.app`
+
+This URL is **permanent** — it does not change between deployments.
+
+### 11e — Verify deployment
+
+```bash
+curl https://sanadige-backend-xxxxxxxxxxxx-el.a.run.app/health
+# {"ok":true,"ts":"2026-04-17T..."}
+```
+
+### 11f — Attach a custom domain (optional but recommended)
+
+```bash
+gcloud run domain-mappings create \
+  --service sanadige-backend \
+  --domain api.sanadige.in \
+  --region asia-south1
+```
+
+Follow the DNS instructions shown to add a CNAME record at your domain registrar. Once propagated, `https://api.sanadige.in` will route to your service.
+
+---
+
+## Step 12 — Register the WhatsApp webhook with Meta
 
 1. Go to [developers.facebook.com](https://developers.facebook.com) → Your App → **WhatsApp → Configuration** (left sidebar).
 2. Under **Webhook**, click **Edit**.
 3. Enter:
-   - **Callback URL**: `https://your-railway-url.railway.app/webhooks/whatsapp`
-   - **Verify token**: the same value as `WHATSAPP_VERIFY_TOKEN` in your `.env`
-4. Click **Verify and Save**. Meta will send a GET request to your server; your server will respond with the challenge. If verification fails, double-check that your Railway deployment is running and the `WHATSAPP_VERIFY_TOKEN` matches exactly.
+   - **Callback URL**: `https://sanadige-backend-xxxxxxxxxxxx-el.a.run.app/webhooks/whatsapp`
+   - **Verify token**: the same value as `WHATSAPP_VERIFY_TOKEN`
+4. Click **Verify and Save**. Meta will send a GET request to your server; your server will respond with the challenge. If verification fails, check that the deployment is running and the token matches exactly.
 5. Under **Webhook fields**, click **Manage** and subscribe to: **messages** ✓
 6. Click **Done**.
 
 ---
 
-## Step 12 — Register the Instagram webhook with Meta
+## Step 13 — Register the Instagram webhook with Meta
 
 1. Go to your Meta App → **Instagram → Webhooks** (left sidebar).
 2. Click **Add Callback URL**.
 3. Enter:
-   - **Callback URL**: `https://your-railway-url.railway.app/webhooks/instagram`
-   - **Verify token**: the same value as `INSTAGRAM_VERIFY_TOKEN` in your `.env`
+   - **Callback URL**: `https://sanadige-backend-xxxxxxxxxxxx-el.a.run.app/webhooks/instagram`
+   - **Verify token**: the same value as `INSTAGRAM_VERIFY_TOKEN`
 4. Click **Verify and Save**.
 5. Subscribe to the **messages** field.
 
 ---
 
-## Step 13 — Test WhatsApp end-to-end
+## Step 14 — Test WhatsApp end-to-end
 
 1. Open WhatsApp on your phone.
 2. Send a message to the Sanadige WhatsApp Business number: `Is the Anjal in today?`
@@ -286,15 +323,15 @@ curl https://your-railway-url.railway.app/health
 
 If you do not receive a reply:
 
-- Check Railway logs: `railway logs` in your terminal
+- Check Cloud Run logs: `gcloud run logs read sanadige-backend --region asia-south1 --limit 50`
 - Check that your phone number is added as a test recipient in the Meta Developer console (for test numbers, Meta restricts which numbers can receive messages)
 - Check the Supabase dashboard → Table Editor → `conversations` to see if the message was stored
 
 ---
 
-## Step 14 — Test the chef catch command
+## Step 15 — Test the chef catch command
 
-Send the following from a WhatsApp number that is authorised (any number works in test mode):
+Send the following from the manager's WhatsApp number (the one set as `MANAGER_PHONE`):
 
 ```
 /catch today
@@ -309,7 +346,7 @@ Verify in Supabase → Table Editor → `daily_availability` that the rows were 
 
 ---
 
-## Step 15 — Seed the menu_items table (optional but recommended)
+## Step 16 — Seed the menu_items table (optional but recommended)
 
 The `catch_items` table is pre-seeded by the schema with 6 seafood items. The `menu_items` table (starters, mains, vegetarian, drinks) needs to be populated manually.
 
@@ -328,22 +365,49 @@ Add as many dishes as needed. The `get_menu_item_detail` tool searches by name u
 
 ---
 
+## Redeployment (after code changes)
+
+Whenever you push code changes, rebuild and redeploy:
+
+```bash
+docker build -t asia-south1-docker.pkg.dev/YOUR_PROJECT_ID/sanadige/backend:latest .
+docker push asia-south1-docker.pkg.dev/YOUR_PROJECT_ID/sanadige/backend:latest
+gcloud run deploy sanadige-backend \
+  --image asia-south1-docker.pkg.dev/YOUR_PROJECT_ID/sanadige/backend:latest \
+  --platform managed \
+  --region asia-south1
+```
+
+Cloud Run performs a zero-downtime rolling update. The old version handles traffic until the new version is healthy.
+
+---
+
 ## Troubleshooting
 
 ### Server won't start: ZodError
 
-One or more env vars are missing. The error will list exactly which ones. Check your `.env` file.
+One or more env vars are missing. The error will list exactly which ones. Check the `--set-env-vars` flag in your deploy command.
 
 ### Meta webhook verification fails (403)
 
-- Confirm your Railway deployment is live (`curl /health`)
+- Confirm the service is live (`curl /health`)
 - Confirm the verify token in Meta's dashboard matches `WHATSAPP_VERIFY_TOKEN` exactly (case-sensitive)
 
 ### WhatsApp message received but no reply sent
 
-Check Railway logs for errors. Common causes:
+Check Cloud Run logs: `gcloud run logs read sanadige-backend --region asia-south1 --limit 100`
+
+Common causes:
 - `ANTHROPIC_API_KEY` is wrong or rate-limited
-- `WHATSAPP_TOKEN` has expired (Meta tokens expire — regenerate in the developer console and update Railway env vars)
+- `WHATSAPP_TOKEN` has expired (Meta tokens expire — regenerate in the developer console and update the Cloud Run env vars via `gcloud run services update`)
+
+### Updating env vars after deployment
+
+```bash
+gcloud run services update sanadige-backend \
+  --region asia-south1 \
+  --set-env-vars "WHATSAPP_TOKEN=new-value"
+```
 
 ### Supabase error: row-level security
 
@@ -352,9 +416,10 @@ The backend uses the `service_role` key which bypasses RLS. If you see permissio
 ### Reminders not sending
 
 The reminder cron runs every 10 minutes. Check:
-1. Railway logs for `[Reminder job]` entries
+1. Cloud Run logs for `[Reminder job]` entries
 2. That bookings in the `bookings` table have `status = 'confirmed'` and `reminder_sent_at IS NULL`
-3. That the booking `datetime` is within 1h50m–2h from now (UTC)
+3. That the booking `datetime` is within 1h50m–2h from now (IST)
+4. That `--min-instances 1` is set — if the instance sleeps between requests the cron will not fire
 
 ---
 
@@ -364,7 +429,8 @@ Before going live with real customers:
 
 1. **Upgrade WhatsApp from test number to production** — submit your app for Meta review at [developers.facebook.com](https://developers.facebook.com). This unlocks sending to all numbers (not just test recipients).
 2. **Rotate your verify tokens** — use strong random strings, not memorable words.
-3. **Set up Supabase Row Level Security (RLS)** on the `bookings` and `conversations` tables if you add any client-side access.
-4. **Enable Supabase database backups** — go to Project Settings → Database → Backups.
-5. **Set Railway to always-on** — under your service settings, disable sleep on inactivity (requires paid plan).
+3. **Attach a custom domain** — `api.sanadige.in` (see Step 11f).
+4. **Upgrade Supabase to Pro** (~$25/month) — enables daily backups, point-in-time recovery, and prevents the free tier from pausing after inactivity.
+5. **Set up Supabase Row Level Security (RLS)** on the `bookings` and `conversations` tables if you add any client-side access.
 6. **Monitor Claude API costs** — check [console.anthropic.com](https://console.anthropic.com) usage. Prompt caching is enabled by default and reduces costs by ~80% per repeated system prompt call.
+7. **Set up Cloud Run alerts** — in Google Cloud Console → Monitoring, create uptime checks and alert policies for the `/health` endpoint.

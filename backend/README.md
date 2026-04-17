@@ -57,7 +57,7 @@ Customer (WhatsApp / Instagram DM)
 | Messaging | Meta WhatsApp Cloud API, Meta Graph API (Instagram) |
 | Scheduling | node-cron |
 | Testing | Vitest |
-| Deploy | Railway (NIXPACKS) |
+| Deploy | Google Cloud Run (Docker, asia-south1) |
 
 ---
 
@@ -85,10 +85,13 @@ backend/
 │   ├── services/
 │   │   ├── claude.ts                   # Full conversation handler with tool loop
 │   │   ├── catch.ts                    # Parse /catch command, upsert daily_availability
+│   │   ├── staff.ts                    # Staff management — roles, WhatsApp commands
 │   │   └── reminder.ts                 # Cron: send WhatsApp 2h before booking
 │   └── db/
 │       └── schema.sql                  # Run once in Supabase SQL editor
-└── tests/                              # Vitest unit tests (21 passing)
+├── tests/                              # Vitest unit tests (29 passing)
+├── Dockerfile                          # Multi-stage build for Cloud Run
+└── .dockerignore
 ```
 
 ---
@@ -114,7 +117,21 @@ backend/
 | menu_items | Full restaurant menu (non-catch dishes) |
 | bookings | Reservations — floor, datetime, status, reminder tracking |
 | conversations | Per-sender conversation history (last 20 messages) |
+| staff | Staff members — phone, name, role (chef/host/manager) |
 | orders | QR menu orders (Plan 3) |
+
+---
+
+## Staff roles
+
+| Role | WhatsApp commands | Claude context |
+|---|---|---|
+| chef | /catch today ... | Seafood/prep aware |
+| host | (none) | Seating/floor aware |
+| manager | /catch ... + /staff list/add/remove | Full ops context |
+| customer | (none) | Guest-facing assistant |
+
+The primary manager number is seeded from `MANAGER_PHONE` in `.env` on startup.
 
 ---
 
@@ -152,9 +169,10 @@ All variables are validated with Zod on startup. The process exits immediately i
 | WHATSAPP_VERIFY_TOKEN | Yes | Secret string for Meta webhook verification |
 | INSTAGRAM_PAGE_ACCESS_TOKEN | Yes | Page access token for the Instagram account |
 | INSTAGRAM_VERIFY_TOKEN | Yes | Secret string for Meta webhook verification |
+| MANAGER_PHONE | No | Primary manager WhatsApp number (auto-seeded as manager role) |
 | SWIFTBOOK_API_KEY | No | Leave empty if SwiftBook API is not available |
 | SWIFTBOOK_PROPERTY_ID | No | Leave empty if SwiftBook API is not available |
-| PORT | No | Defaults to 3000 |
+| PORT | No | Defaults to 3000 (Cloud Run injects 8080 automatically) |
 
 ---
 
@@ -165,7 +183,7 @@ npm test            # run once
 npm run test:watch  # watch mode
 ```
 
-21 tests, no real network calls (all mocked with Vitest).
+29 tests, no real network calls (all mocked with Vitest).
 
 ---
 
@@ -173,5 +191,5 @@ npm run test:watch  # watch mode
 
 This is Plan 1 of 3.
 
-- **Plan 2**: Staff Dashboard (Next.js 14) — catch toggles, floor map, reservation management, analytics
+- **Plan 2**: Staff Dashboard (Next.js 14) — catch toggles, floor map, reservation management, staff management UI, analytics
 - **Plan 3**: QR Menu PWA (Next.js 14) — menu.sanadige.in/[tableId], live availability, inline Claude Q&A, direct-to-kitchen ordering

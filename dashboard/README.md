@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sanadige Staff Dashboard
 
-## Getting Started
+Role-aware internal web dashboard for Sanadige Delhi staff. Live at `dashboard.sanadige.in`.
 
-First, run the development server:
+## What it does
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Staff sign in with their WhatsApp number — no passwords. A 6-digit OTP is sent via WhatsApp and verified. On success, a signed JWT is stored as an HTTP-only cookie that lasts 12 hours.
+
+Every staff member lands on a different page based on their role:
+
+| Role | Default page | Access |
+|---|---|---|
+| Manager | Mission Control (`/dashboard`) | All 6 sections |
+| Chef | Today's Catch (`/dashboard/catch`) | Catch only |
+| Host | Bookings (`/dashboard/bookings`) | Bookings + Floor Map |
+
+## The 6 sections
+
+**Mission Control** — Manager home. KPI cards (bookings today, available seats, catch live, estimated revenue), bookings bar chart with week/month toggle, upcoming bookings widget, catch status widget, activity feed, and staff-on-duty widget.
+
+**Today's Catch** — Chefs and managers manage the day's catch. Click the status badge to cycle Available → Sold Out → Tomorrow. Add notes inline (saves on blur). Add new fish via drawer. Summary bar shows counts at a glance.
+
+**Bookings** — Hosts and managers see today's bookings in a sortable table. Expand any row to see the booking ref, phone, and a direct WhatsApp link. Mark a booking as Seated or cancel it. Create new bookings via drawer (triggers a WhatsApp confirmation to the guest).
+
+**Floor Map** — SVG plan of all 4 areas: Terrace (25 seats), Floor 1 (40), Floor 2 (35), Private Room (12). Tables show green (free), amber (booking within 2 hours), or red (seated).
+
+**Staff** — Manager-only. View all staff with role-coloured avatars, edit roles inline, remove members (except the primary manager), and add new members. New members receive a WhatsApp welcome message automatically.
+
+**Analytics** — Manager-only. 4 charts over the last 30 days: bookings trend (bar), floor distribution (donut), peak hours heatmap (Mon–Sun × 12:00–23:00), estimated revenue + 7-day moving average.
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 14, App Router, TypeScript |
+| Styling | Tailwind CSS + shadcn/ui (warm earthy palette) |
+| Charts | Recharts |
+| Auth | WhatsApp OTP → HS256 JWT in HTTP-only cookie (12h) |
+| Database | Supabase (service role key, server-side only) |
+| Backend | Cloud Run Express app (OTP send + WhatsApp confirmations) |
+| Deploy | Vercel |
+
+## Project structure
+
+```
+dashboard/
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx
+│   │   ├── page.tsx                    → /login or /dashboard
+│   │   ├── login/page.tsx              WhatsApp OTP login
+│   │   └── dashboard/
+│   │       ├── layout.tsx              Shell: sidebar + topbar + auth gate
+│   │       ├── page.tsx                Role-based redirect
+│   │       ├── _components/            MissionControl server component
+│   │       ├── catch/page.tsx
+│   │       ├── bookings/page.tsx
+│   │       ├── floor/page.tsx
+│   │       ├── staff/page.tsx
+│   │       └── analytics/page.tsx
+│   ├── components/
+│   │   ├── shell/                      Sidebar, Topbar
+│   │   ├── home/                       KpiRow, BookingsChart, widgets
+│   │   ├── catch/                      CatchCard, AddCatchDrawer
+│   │   ├── bookings/                   BookingsTable, NewBookingDrawer
+│   │   ├── floor/                      FloorMap (inline SVG)
+│   │   ├── staff/                      StaffCard, AddStaffDrawer
+│   │   ├── analytics/                  4 chart components
+│   │   └── ui/                         shadcn/ui primitives
+│   ├── actions/
+│   │   ├── auth.ts                     sendOtp, verifyOtp, getSession, logout
+│   │   ├── catch.ts                    toggleCatch, updateNote, addCatch
+│   │   ├── bookings.ts                 createBooking, updateBookingStatus
+│   │   └── staff.ts                    addStaff, updateStaffRole, removeStaff
+│   ├── lib/
+│   │   ├── auth.ts                     JWT sign/verify (jose, HS256)
+│   │   ├── supabase.ts                 Server-side Supabase client (service role)
+│   │   ├── supabase-browser.ts         Client-side Supabase client (anon, Realtime)
+│   │   └── cloud-run.ts                Typed fetch wrapper for Cloud Run backend
+│   └── middleware.ts                   JWT validation + role-based route protection
+└── vercel.json
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Running locally
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cd dashboard
+npm install
+# Copy .env.local and fill in real values (see SETUP.md)
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open `http://localhost:3000` — redirects to `/login`.
 
-## Learn More
+## Environment variables
 
-To learn more about Next.js, take a look at the following resources:
+| Variable | Description |
+|---|---|
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key — **server-side only, never expose to browser** |
+| `SUPABASE_ANON_KEY` | Anon key |
+| `NEXT_PUBLIC_SUPABASE_URL` | Same as `SUPABASE_URL` — sent to browser for Realtime |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key sent to browser for Realtime |
+| `JWT_SECRET` | Random 32+ byte secret for signing session JWTs |
+| `CLOUD_RUN_URL` | Base URL of the Cloud Run backend |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Generate a secure JWT_SECRET:
+```bash
+openssl rand -base64 32
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Tests
 
-## Deploy on Vercel
+```bash
+npm test            # run once
+npm run test:watch  # watch mode
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2 tests cover the JWT auth library: sign + verify round-trip, and tampered token rejection.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Full setup instructions
+
+See `SETUP.md` for step-by-step instructions to go from zero to a live production deployment.

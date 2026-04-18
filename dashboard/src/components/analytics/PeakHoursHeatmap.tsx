@@ -1,3 +1,5 @@
+import React from 'react'
+
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 12)
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -17,8 +19,8 @@ export function PeakHoursHeatmap({ data, maxCount }: HeatmapProps) {
             <div key={h} className="text-center text-[10px] text-text-muted">{h}:00</div>
           ))}
           {DAYS.map(day => (
-            <>
-              <div key={`label-${day}`} className="text-[10px] text-text-muted flex items-center">{day}</div>
+            <React.Fragment key={day}>
+              <div className="text-[10px] text-text-muted flex items-center">{day}</div>
               {HOURS.map(h => {
                 const count = data[day]?.[h] ?? 0
                 const intensity = maxCount > 0 ? count / maxCount : 0
@@ -31,7 +33,7 @@ export function PeakHoursHeatmap({ data, maxCount }: HeatmapProps) {
                   />
                 )
               })}
-            </>
+            </React.Fragment>
           ))}
         </div>
       </div>

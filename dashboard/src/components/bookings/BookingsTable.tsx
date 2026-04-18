@@ -1,4 +1,5 @@
 'use client'
+import React from 'react'
 import { useState, useTransition } from 'react'
 import { updateBookingStatus } from '@/actions/bookings'
 import { Button } from '@/components/ui/button'
@@ -54,9 +55,8 @@ export function BookingsTable({ bookings }: { bookings: Booking[] }) {
         </thead>
         <tbody>
           {bookings.map(b => (
-            <>
+            <React.Fragment key={b.id}>
               <tr
-                key={b.id}
                 className="border-b border-border hover:bg-background cursor-pointer"
                 onClick={() => setExpanded(expanded === b.id ? null : b.id)}
               >
@@ -88,7 +88,7 @@ export function BookingsTable({ bookings }: { bookings: Booking[] }) {
                 </td>
               </tr>
               {expanded === b.id && (
-                <tr key={`${b.id}-detail`} className="bg-background">
+                <tr className="bg-background">
                   <td colSpan={7} className="px-6 py-4 text-sm text-[#1a2e1a] space-y-1">
                     <p><span className="font-medium">Ref:</span> {b.booking_ref}</p>
                     <p><span className="font-medium">Phone:</span> {b.phone}</p>
@@ -104,7 +104,7 @@ export function BookingsTable({ bookings }: { bookings: Booking[] }) {
                   </td>
                 </tr>
               )}
-            </>
+            </React.Fragment>
           ))}
           {bookings.length === 0 && (
             <tr><td colSpan={7} className="px-4 py-12 text-center text-text-muted">No bookings found</td></tr>

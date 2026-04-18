@@ -19,11 +19,10 @@ export async function toggleCatch(
 export async function updateNote(catchItemId: string, notes: string) {
   const supabase = getSupabase()
   const today = new Date().toISOString().split('T')[0]
-  await supabase
-    .from('daily_availability')
-    .update({ notes })
-    .eq('catch_item_id', catchItemId)
-    .eq('date', today)
+  await supabase.from('daily_availability').upsert(
+    { catch_item_id: catchItemId, date: today, notes },
+    { onConflict: 'catch_item_id,date' }
+  )
   revalidatePath('/dashboard/catch')
 }
 

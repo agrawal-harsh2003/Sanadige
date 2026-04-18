@@ -12,13 +12,23 @@ async function getDashboardData() {
   const todayStart = `${today}T00:00:00`
   const todayEnd = `${today}T23:59:59`
 
-  const [bookingsRes, catchRes, staffRes, activityRes] = await Promise.all([
+  // For the past 30 days (used for chart + monthly KPIs)
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  const [todayBookingsRes, monthBookingsRes, catchRes, staffRes, activityRes] = await Promise.all([
     supabase
       .from('bookings')
       .select('id,datetime,guest_name,party_size,floor,status')
       .gte('datetime', todayStart)
       .lte('datetime', todayEnd)
       .eq('status', 'confirmed')
+      .order('datetime'),
+    supabase
+      .from('bookings')
+      .select('datetime,party_size,status')
+      .gte('datetime', thirtyDaysAgo.toISOString())
+      .in('status', ['confirmed', 'seated'])
       .order('datetime'),
     supabase
       .from('daily_availability')
@@ -32,7 +42,8 @@ async function getDashboardData() {
       .limit(10),
   ])
 
-  const todayBookings = bookingsRes.data ?? []
+  const todayBookings = todayBookingsRes.data ?? []
+  const monthBookings = monthBookingsRes.data ?? []
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const catchItems = (catchRes.data ?? []).map((r: any) => ({
@@ -43,21 +54,37 @@ async function getDashboardData() {
 
   const availableCatch = catchItems.filter(c => c.status === 'available').length
   const catchLive = `${availableCatch}/${catchItems.length}`
-  const avgPartySize = todayBookings.length > 0
-    ? todayBookings.reduce((s, b) => s + (b.party_size ?? 0), 0) / todayBookings.length
-    : 0
-  const bookedSeats = Math.round(avgPartySize * todayBookings.length)
+  const bookedSeats = todayBookings.reduce((s, b) => s + (b.party_size ?? 0), 0)
   const availableSeats = Math.max(0, 142 - bookedSeats)
   const revenueToday = `₹${(todayBookings.reduce((s, b) => s + (b.party_size ?? 0), 0) * 2000).toLocaleString('en-IN')}`
 
-  // Last 7 days chart
+  // Count bookings per day from monthBookings
+  const byDay: Record<string, number> = {}
+  monthBookings.forEach(b => {
+    const day = b.datetime.split('T')[0]
+    byDay[day] = (byDay[day] ?? 0) + 1
+  })
+
+  // Last 7 days
   const weekData = Array.from({ length: 7 }, (_, i) => {
     const d = new Date()
     d.setDate(d.getDate() - (6 - i))
     const dateStr = d.toISOString().split('T')[0]
     return {
       day: d.toLocaleDateString('en-IN', { weekday: 'short' }),
-      count: todayBookings.filter(b => b.datetime.startsWith(dateStr)).length,
+      count: byDay[dateStr] ?? 0,
+      isToday: dateStr === today,
+    }
+  })
+
+  // Last 30 days
+  const monthData = Array.from({ length: 30 }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() - (29 - i))
+    const dateStr = d.toISOString().split('T')[0]
+    return {
+      day: d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
+      count: byDay[dateStr] ?? 0,
       isToday: dateStr === today,
     }
   })
@@ -69,6 +96,7 @@ async function getDashboardData() {
     staff: staffRes.data ?? [],
     activities: activityRes.data ?? [],
     weekData,
+    monthData,
   }
 }
 
@@ -80,7 +108,7 @@ export async function MissionControl() {
       <h1 className="text-xl font-bold text-[#1a2e1a]">Mission Control</h1>
       <KpiRow data={data.kpi} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <BookingsChart weekData={data.weekData} monthData={data.weekData} />
+        <BookingsChart weekData={data.weekData} monthData={data.monthData} />
         <UpcomingBookings bookings={data.upcoming} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

@@ -10,18 +10,25 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: '#f8f7f4',
-        surface: '#ffffff',
-        border: '#e8e3dc',
-        primary: {
-          DEFAULT: '#1a3a2a',
-          foreground: '#ffffff',
-        },
-        accent: {
-          DEFAULT: '#c8956c',
-          foreground: '#ffffff',
-        },
-        'text-muted': '#9ca3af',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        card: 'hsl(var(--card))',
+        'card-foreground': 'hsl(var(--card-foreground))',
+        popover: 'hsl(var(--popover))',
+        'popover-foreground': 'hsl(var(--popover-foreground))',
+        primary: 'hsl(var(--primary))',
+        'primary-foreground': 'hsl(var(--primary-foreground))',
+        secondary: 'hsl(var(--secondary))',
+        'secondary-foreground': 'hsl(var(--secondary-foreground))',
+        muted: 'hsl(var(--muted))',
+        'muted-foreground': 'hsl(var(--muted-foreground))',
+        accent: 'hsl(var(--accent))',
+        'accent-foreground': 'hsl(var(--accent-foreground))',
+        destructive: 'hsl(var(--destructive))',
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        'text-foreground': 'hsl(var(--foreground))',
       },
       fontFamily: {
         sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],

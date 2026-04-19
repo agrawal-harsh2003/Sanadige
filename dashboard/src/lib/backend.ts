@@ -1,4 +1,4 @@
-const BASE = process.env.BACKEND_URL!
+const BASE = process.env.BACKEND_URL!.replace(/\/$/, '')
 
 export async function backendPost<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {

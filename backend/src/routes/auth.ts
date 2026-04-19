@@ -13,7 +13,7 @@ function normalizePhone(raw: string): string {
 
 authRouter.post('/send-otp', async (req, res) => {
   try {
-    const { phone: rawPhone } = req.body as { phone?: string }
+    const rawPhone = (req.body as Record<string, unknown> | undefined)?.phone as string | undefined
     if (!rawPhone) return res.json({ ok: true })
 
     const phone = normalizePhone(rawPhone)

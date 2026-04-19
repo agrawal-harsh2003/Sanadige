@@ -1,48 +1,214 @@
 # Sanadige Delhi — Backend
 
-AI-powered automation backend for Sanadige Delhi (Chanakyapuri). Handles WhatsApp and Instagram DM messages through Claude claude-sonnet-4-6, manages daily seafood availability, reservations, and automated reminders.
+Automation backend for Sanadige Delhi (Chanakyapuri). Handles WhatsApp and Instagram DMs — Claude for customers, a fully button-driven interactive menu for staff.
 
 ---
 
 ## What this does
 
-**Customers message on WhatsApp or Instagram DM** → backend normalises the message → Claude decides which tool to call → replies with live data.
+**Customers** message on WhatsApp or Instagram DM → Claude answers using live data (catch, menu, bookings).
+
+**Staff** message on WhatsApp → fully button-driven interactive panel, zero free-text input required. No Claude involved.
 
 Three core automations:
 
-1. **Daily catch updates** — Chef sends a `/catch` command on WhatsApp (or toggles from the dashboard). All customer queries about availability are answered in real-time using that data.
-
-2. **Reservations** — Claude collects date, time, party size, floor preference, and guest name through natural conversation, then writes to Supabase and (optionally) syncs to SwiftBook. A WhatsApp reminder fires automatically 2 hours before the booking.
-
-3. **Menu Q&A** — Claude answers questions about dishes, allergens, spice levels, and pricing using the `get_menu_item_detail` tool.
+1. **Daily catch updates** — Chef selects a fish from a list and taps its status. Customers get live answers instantly.
+2. **Reservations** — Host or manager creates a booking step-by-step via buttons. Guest gets a WhatsApp confirmation automatically.
+3. **Booking reminders** — Cron job fires a WhatsApp reminder to the guest 2 hours before their booking.
 
 ---
 
 ## Architecture
 
 ```
-Customer (WhatsApp / Instagram DM)
+Incoming WhatsApp message
         ↓
-  Webhook Gateway  (/webhooks/whatsapp, /webhooks/instagram)
+  normalise.ts  →  IncomingMessage { channel, senderId, text, interactiveId? }
         ↓
-  normalise.ts  →  IncomingMessage { channel, senderId, text }
-        ↓
-  claude.ts  →  handleMessage()
-    ├── getHistory()        — load last 20 messages from Supabase
-    ├── anthropic.messages.create()  — with prompt caching + tool defs
-    │     └── tool use loop
-    │           ├── get_today_catch       → daily_availability JOIN catch_items
-    │           ├── check_floor_availability  → bookings table ±2h window
-    │           ├── create_booking        → INSERT bookings
-    │           └── get_menu_item_detail  → menu_items ilike search
-    └── saveHistory()       — upsert trimmed history to Supabase
-        ↓
-  sendWhatsAppMessage() / Instagram Graph API
-        ↓
-  Customer receives reply
+  whatsapp.ts webhook
+        ├── getStaff(senderId)
+        │     ├── Staff found  →  staff-menu.ts (interactive button flows)
+        │     └── Not staff   →  claude.ts (customer AI assistant)
+        │
+        ├── staff-menu.ts — state machine (sessions Map)
+        │     ├── showMainMenu()         per role: chef / host / manager
+        │     ├── Catch flow            list → fish → status buttons → upsert
+        │     ├── Bookings flow         sub-menu → view today / create (6 steps)
+        │     └── Staff flow            sub-menu → add / remove / view
+        │
+        └── claude.ts — handleMessage()
+              ├── getHistory()           last 20 messages from Supabase
+              ├── anthropic.messages.create()  tool use loop
+              │     ├── get_today_catch
+              │     ├── check_floor_availability
+              │     ├── create_booking
+              │     └── get_menu_item_detail
+              └── saveHistory()
 ```
 
-**Reminder job**: `node-cron` runs every 10 minutes, finds bookings in the 1h50m–2h window, sends WhatsApp reminders, marks `reminder_sent_at`.
+**Reminder job**: `node-cron` runs every 10 minutes, finds bookings in the 1h50m–2h10m window, sends WhatsApp reminders, marks `reminder_sent_at`.
+
+---
+
+## Staff WhatsApp Workflow
+
+All staff interactions use WhatsApp Interactive Messages (buttons and lists). Staff never need to type commands. Any unrecognised message shows the main menu. Type `menu`, `hi`, `hello`, or `0` at any time to return to the main menu.
+
+### Main Menu
+
+| Role | Menu type | Options |
+|---|---|---|
+| Chef | 2 buttons | Update Catch · Help & Guide |
+| Host | 2 buttons | Bookings · Help & Guide |
+| Manager | List (4 rows) | Today's Catch · Bookings · Staff · Help & Guide |
+
+---
+
+### Today's Catch (Chef & Manager)
+
+Updates fish availability for the day. Can be updated multiple times.
+
+```
+Main Menu
+  → [Update Catch]
+      → List of all fish in catalogue
+          (shows current status: ✅ Available / ❌ Sold Out / 🔜 Tomorrow)
+          → [Choose fish]
+              → 3 buttons: Available · Sold Out · Tomorrow
+                  → ✓ Fish Name → status saved to daily_availability
+                      → [Update Another] or [Main Menu]
+```
+
+Writes to: `daily_availability` (upsert on `catch_item_id + date`)
+
+---
+
+### Bookings (Host & Manager)
+
+#### View Today's Bookings
+
+```
+Main Menu
+  → [Bookings]
+      → [View Today]
+          → List of today's bookings:
+              🟡 Guest Name × party | time
+                 Floor · SND-XXXXXX
+              (🟡 confirmed · 🟢 seated · 🔴 cancelled · ⚫ no-show)
+              → [New Booking] or [Main Menu]
+```
+
+#### Create a New Booking (6 steps, all buttons)
+
+```
+Main Menu
+  → [Bookings]
+      → [New Booking]
+          Step 1: Type guest's full name  (text input)
+          Step 2: Type guest's WhatsApp number  (text input, with country code)
+          Step 3: List — party size
+                  Small Party: 1 · 2 · 3 · 4 · 5
+                  Large Party: 6 · 7 · 8 · 10 · 12
+          Step 4: List — date (rolling 7-day picker)
+                  Today · Tomorrow · Mon 22 Apr · Tue 23 Apr · ... (7 rows)
+          Step 5: List — time
+                  Lunch:  12:00 PM · 12:30 PM · 1:00 PM · 1:30 PM
+                  Dinner: 7:00 PM · 7:30 PM · 8:00 PM · 8:30 PM · 9:00 PM · 9:30 PM
+          Step 6: List — seating area
+                  Terrace (25 seats) · Floor 1 (40) · Floor 2 (35) · Private Room (12)
+
+          → Booking Summary (all details)
+              → [Confirm Booking] or [Discard]
+                  → ✅ Ref SND-XXXXXX saved to bookings table
+                  → Guest receives WhatsApp confirmation (best-effort, 24h window)
+                  → [New Booking] or [Main Menu]
+```
+
+Only steps 1 and 2 require text input (guest name and phone — cannot be replaced with buttons).
+
+---
+
+### Staff Management (Manager only)
+
+#### View All Staff
+
+```
+Main Menu
+  → [Staff]
+      → [View All Staff]
+          → 👔 Manager Name · 91XXXXXXXXXX
+            👨‍🍳 Chef Name   · 91XXXXXXXXXX
+            🙋 Host Name    · 91XXXXXXXXXX
+              → [Staff Menu] or [Main Menu]
+```
+
+#### Add Staff
+
+```
+Main Menu
+  → [Staff]
+      → [Add Staff]
+          → 3 buttons: Chef · Host · Manager
+              → Type new person's full name  (text input)
+                  → Type new person's WhatsApp number  (text input)
+                      → ✅ Name added as role
+                      → Welcome message sent to new staff member automatically
+                          (includes role-specific guide + "type menu to start")
+                      → [Add Another] or [Staff Menu] or [Main Menu]
+```
+
+Welcome messages are sent best-effort. If the new staff member has never messaged the bot, the WhatsApp 24-hour session window won't allow it — they must send `menu` to the bot first.
+
+#### Remove Staff
+
+```
+Main Menu
+  → [Staff]
+      → [Remove Staff]
+          → List of all staff (except primary manager)
+              → [Choose person]
+                  → Confirmation: Remove Name (role)? This cannot be undone.
+                      → [Yes, Remove] → ✅ Removed
+                      → [Cancel]      → ↩️ Cancelled → Main Menu
+```
+
+The primary manager (seeded from `MANAGER_PHONE` env var) cannot be removed.
+
+---
+
+### Help & Guide
+
+Role-specific text guide explaining available actions + dashboard URL. Returns a `[Main Menu]` button.
+
+---
+
+### Global Escape
+
+Any of these words resets the session and shows the main menu from anywhere:
+
+```
+menu  hi  hello  home  start  /menu  0
+```
+
+Any `[Main Menu]` button in any flow also resets the session.
+
+---
+
+## Architecture — customers (Claude)
+
+```
+Customer message
+  ↓
+claude.ts → handleMessage()
+  ├── getHistory()             load last 20 messages from Supabase
+  ├── anthropic.messages.create()  with tool definitions + prompt caching
+  │     tool use loop:
+  │       ├── get_today_catch          → daily_availability JOIN catch_items
+  │       ├── check_floor_availability → bookings table ±2h window per floor
+  │       ├── create_booking           → INSERT bookings, generate SND-XXXX ref
+  │       └── get_menu_item_detail     → menu_items ilike search
+  └── saveHistory()            upsert trimmed history to Supabase
+```
 
 ---
 
@@ -53,8 +219,8 @@ Customer (WhatsApp / Instagram DM)
 | Runtime | Node.js 20, TypeScript 5 |
 | Framework | Express 5 |
 | AI | Claude claude-sonnet-4-6 via @anthropic-ai/sdk — tool use + prompt caching |
-| Database | Supabase (PostgreSQL + Realtime) |
-| Messaging | Meta WhatsApp Cloud API, Meta Graph API (Instagram) |
+| Database | Supabase (PostgreSQL) |
+| Messaging | Meta WhatsApp Cloud API (text + interactive buttons/lists), Meta Graph API (Instagram) |
 | Scheduling | node-cron |
 | Testing | Vitest |
 | Deploy | AWS EC2 t2.micro + PM2 + nginx (ap-south-1) |
@@ -71,9 +237,9 @@ backend/
 │   ├── lib/
 │   │   ├── supabase.ts                 # Supabase client singleton
 │   │   ├── anthropic.ts                # Anthropic SDK client singleton
-│   │   └── whatsapp.ts                 # sendWhatsAppMessage()
+│   │   └── whatsapp.ts                 # sendWhatsAppMessage(), sendButtons(), sendList()
 │   ├── webhooks/
-│   │   ├── whatsapp.ts                 # GET (hub verification) + POST handler
+│   │   ├── whatsapp.ts                 # Routes: staff → staff-menu, else → Claude
 │   │   ├── instagram.ts                # GET (hub verification) + POST handler
 │   │   └── normalise.ts                # Normalise both platforms to IncomingMessage
 │   ├── tools/
@@ -83,15 +249,14 @@ backend/
 │   │   ├── create-booking.ts           # INSERT booking, generate SND-XXXX ref
 │   │   └── get-menu-item-detail.ts     # ilike search on menu_items
 │   ├── services/
-│   │   ├── claude.ts                   # Full conversation handler with tool loop
-│   │   ├── catch.ts                    # Parse /catch command, upsert daily_availability
-│   │   ├── staff.ts                    # Staff management — roles, WhatsApp commands
+│   │   ├── claude.ts                   # Customer conversation handler with tool loop
+│   │   ├── staff-menu.ts               # Staff interactive menu state machine
+│   │   ├── staff.ts                    # getStaff(), staff DB helpers
 │   │   └── reminder.ts                 # Cron: send WhatsApp 2h before booking
 │   └── db/
 │       └── schema.sql                  # Run once in Supabase SQL editor
-├── tests/                              # Vitest unit tests (29 passing)
-├── Dockerfile                          # Not used for EC2 deploy — kept for reference
-└── .dockerignore
+├── tests/                              # Vitest unit tests
+└── Dockerfile                          # Not used for EC2 deploy — kept for reference
 ```
 
 ---
@@ -100,7 +265,7 @@ backend/
 
 | Method | Path | Description |
 |---|---|---|
-| GET | /health | Health check — returns { ok: true, ts: "..." } |
+| GET | /health | Health check — returns `{ ok: true, ts: "..." }` |
 | GET | /webhooks/whatsapp | Meta hub.challenge verification |
 | POST | /webhooks/whatsapp | Incoming WhatsApp messages |
 | GET | /webhooks/instagram | Meta hub.challenge verification |
@@ -116,7 +281,7 @@ backend/
 | daily_availability | Today's catch status — available / sold_out / tomorrow |
 | menu_items | Full restaurant menu (non-catch dishes) |
 | bookings | Reservations — floor, datetime, status, reminder tracking |
-| conversations | Per-sender conversation history (last 20 messages) |
+| conversations | Per-sender conversation history (last 20 messages, customers only) |
 | staff | Staff members — phone, name, role (chef/host/manager) |
 | orders | QR menu orders (Plan 3) |
 
@@ -124,34 +289,13 @@ backend/
 
 ## Staff roles
 
-| Role | WhatsApp commands | Claude context |
+| Role | WhatsApp access | Dashboard access |
 |---|---|---|
-| chef | /catch today ... | Seafood/prep aware |
-| host | (none) | Seating/floor aware |
-| manager | /catch ... + /staff list/add/remove | Full ops context |
-| customer | (none) | Guest-facing assistant |
+| chef | Update Catch | Today's Catch page |
+| host | Bookings (view + create) | Bookings + Floor Map |
+| manager | All: Catch + Bookings + Staff management | All 6 sections |
 
-The primary manager number is seeded from `MANAGER_PHONE` in `.env` on startup.
-
----
-
-## Chef catch update format
-
-Send this to the bot's WhatsApp number:
-
-```
-/catch today
-✅ Anjal – Goan, large pieces today
-✅ Mud Crab – live, limited quantity
-❌ Lobster – not today
-❌ Tiger Prawns – back tomorrow
-```
-
-- ✅ sets status: available
-- ❌ sets status: sold_out
-- Lines with "tomorrow" set status: tomorrow
-
-Bot replies: ✓ Catch updated — 4 items set for today.
+The primary manager is seeded from `MANAGER_PHONE` in `.env` on startup. They cannot be removed via the staff panel.
 
 ---
 
@@ -182,8 +326,6 @@ All variables are validated with Zod on startup. The process exits immediately i
 npm test            # run once
 npm run test:watch  # watch mode
 ```
-
-29 tests, no real network calls (all mocked with Vitest).
 
 ---
 

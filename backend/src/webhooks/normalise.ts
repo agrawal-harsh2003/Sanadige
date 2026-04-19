@@ -2,6 +2,7 @@ export interface IncomingMessage {
   channel: 'whatsapp' | 'instagram' | 'web'
   senderId: string
   text: string
+  interactiveId?: string
 }
 
 export function normaliseWhatsApp(body: unknown): IncomingMessage | null {
@@ -11,20 +12,34 @@ export function normaliseWhatsApp(body: unknown): IncomingMessage | null {
 
   if (!value || !Array.isArray(value.messages)) return null
   const messages = value.messages as Array<Record<string, unknown>>
-
   if (messages.length === 0) return null
+
   const msg = messages[0]
-  if (msg.type !== 'text') return null
-
   if (!msg.from || typeof msg.from !== 'string') return null
-  const text = (msg.text as { body: string }).body
-  if (!text || !text.trim()) return null
+  const from = msg.from
 
-  return {
-    channel: 'whatsapp',
-    senderId: msg.from,
-    text,
+  if (msg.type === 'text') {
+    const text = (msg.text as { body: string })?.body
+    if (!text?.trim()) return null
+    return { channel: 'whatsapp', senderId: from, text }
   }
+
+  if (msg.type === 'interactive') {
+    const interactive = msg.interactive as Record<string, unknown>
+    const type = interactive?.type as string
+
+    if (type === 'button_reply') {
+      const reply = interactive.button_reply as { id: string; title: string }
+      return { channel: 'whatsapp', senderId: from, text: reply.title, interactiveId: reply.id }
+    }
+
+    if (type === 'list_reply') {
+      const reply = interactive.list_reply as { id: string; title: string }
+      return { channel: 'whatsapp', senderId: from, text: reply.title, interactiveId: reply.id }
+    }
+  }
+
+  return null
 }
 
 export function normaliseInstagram(body: unknown): IncomingMessage | null {
@@ -34,7 +49,7 @@ export function normaliseInstagram(body: unknown): IncomingMessage | null {
 
   if (!messaging) return null
   const text = (messaging.message as { text?: string })?.text
-  if (!text || !text.trim()) return null
+  if (!text?.trim()) return null
 
   return {
     channel: 'instagram',

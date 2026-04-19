@@ -312,6 +312,7 @@ node dist/index.js
 ```
 
 Expected output:
+
 ```
 Sanadige backend running on :3000
 ```
@@ -402,6 +403,7 @@ sudo certbot --nginx -d api.sanadige.in
 Follow the prompts — enter your email, agree to terms. Certbot automatically modifies your nginx config to handle HTTPS and sets up auto-renewal. When complete, your backend is reachable at `https://api.sanadige.in`.
 
 **Verify:**
+
 ```bash
 curl https://api.sanadige.in/health
 # {"ok":true,"ts":"2026-04-..."}
@@ -411,11 +413,12 @@ curl https://api.sanadige.in/health
 
 Before running Certbot, add an A record at your DNS provider:
 
-| Type | Name | Value |
-|------|------|-------|
-| A | `api` | `YOUR_SERVER_IP` (the Elastic IP) |
+| Type | Name    | Value                               |
+| ---- | ------- | ----------------------------------- |
+| A    | `api` | `YOUR_SERVER_IP` (the Elastic IP) |
 
 DNS propagation takes 1–30 minutes. You can check with:
+
 ```bash
 nslookup api.sanadige.in
 ```

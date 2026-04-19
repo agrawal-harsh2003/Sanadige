@@ -299,6 +299,52 @@ The primary manager is seeded from `MANAGER_PHONE` in `.env` on startup. They ca
 
 ---
 
+## WhatsApp Message Templates
+
+WhatsApp only allows sending messages to numbers that have messaged the bot in the last 24 hours. For staff-created bookings the guest is usually a new contact, so guest confirmations must use an approved **Message Template**.
+
+### booking_confirmation
+
+Used when a host or manager creates a booking via the staff panel. Sends the guest a confirmation with all booking details.
+
+**Setup (one-time):**
+
+1. Go to [business.facebook.com](https://business.facebook.com) → WhatsApp → Message Templates → **Create Template**
+2. Fill in:
+   - Category: **Utility**
+   - Name: `booking_confirmation` ← exact, lowercase with underscores
+   - Language: **English**
+3. Paste this as the body text:
+
+```
+Hello {{1}}! Your table at *Sanadige Delhi* is confirmed.
+
+📅 {{2}}
+🕐 {{3}}
+👥 {{4}} guests
+📍 {{5}}
+*Ref:* {{6}}
+
+We look forward to seeing you! For any changes, call us at +91 91678 85275.
+```
+
+4. Submit for review. Utility templates are usually approved within minutes to a few hours.
+
+**Variables passed at send time:**
+
+| Position | Value |
+|---|---|
+| {{1}} | Guest name |
+| {{2}} | Date (e.g. Sun, 20 Apr) |
+| {{3}} | Time (e.g. 8:00 PM) |
+| {{4}} | Party size |
+| {{5}} | Seating area (e.g. Terrace) |
+| {{6}} | Booking ref (e.g. SND-PAR648) |
+
+If the template send fails (e.g. template not yet approved, or invalid number), the error is logged to PM2 but does not crash the booking flow. Check `pm2 logs sanadige-backend` if guests report not receiving confirmations.
+
+---
+
 ## Environment variables
 
 All variables are validated with Zod on startup. The process exits immediately if anything is missing.

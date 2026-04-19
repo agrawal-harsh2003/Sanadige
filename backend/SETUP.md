@@ -532,7 +532,7 @@ One or more env vars are missing. The error will list exactly which ones. Check 
 
 ### WhatsApp message received but no reply sent
 
-Check the live logs on the server:
+Chece server:
 
 ```bash
 ssh -i ~/Downloads/sanadige-key.pem ubuntu@YOUR_SERVER_IP

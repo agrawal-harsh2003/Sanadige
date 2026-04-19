@@ -1,6 +1,6 @@
 import { StaffMember } from './staff'
 import { IncomingMessage } from '../webhooks/normalise'
-import { sendWhatsAppMessage, sendButtons, sendList } from '../lib/whatsapp'
+import { sendWhatsAppMessage, sendButtons, sendList, sendBookingConfirmationTemplate } from '../lib/whatsapp'
 import { supabase } from '../lib/supabase'
 import { env } from '../env'
 
@@ -49,6 +49,11 @@ function fmtDate(isoDate: string): string {
 
 function statusLabel(s: string): string {
   return s === 'available' ? '✅ Available' : s === 'sold_out' ? '❌ Sold Out' : '🔜 Tomorrow'
+}
+
+function floorLabel(f: string): string {
+  const map: Record<string, string> = { terrace: 'Terrace', floor1: 'Floor 1', floor2: 'Floor 2', private: 'Private Room' }
+  return map[f] ?? f
 }
 
 // ── Main dispatcher ───────────────────────────────────────────────────────────
@@ -134,9 +139,13 @@ async function showMainMenu(to: string, staff: StaffMember): Promise<void> {
 async function handleIdle(msg: IncomingMessage, id: string, staff: StaffMember): Promise<void> {
   if (id === 'main_catch') return showCatchList(msg.senderId, staff)
   if (id === 'main_bookings') return showBookingsSub(msg.senderId, staff)
+  if (id === 'bk_view') return viewBookings(msg.senderId, staff)
+  if (id === 'bk_create') return startBooking(msg.senderId)
   if (id === 'main_staff' && staff.role === 'manager') return showStaffSub(msg.senderId)
+  if (id === 'ss_add') return startAddStaff(msg.senderId)
+  if (id === 'ss_remove') return startRemoveStaff(msg.senderId)
+  if (id === 'ss_view') return showStaffView(msg.senderId, staff)
   if (id === 'main_help') return showHelp(msg.senderId, staff)
-  // Unrecognised text — show the menu
   return showMainMenu(msg.senderId, staff)
 }
 
@@ -166,7 +175,7 @@ async function showCatchList(to: string, staff: StaffMember): Promise<void> {
   if (items.length === 0) {
     await sendWhatsAppMessage(to, 'No items in the catalogue. Add fish via the dashboard first.')
     reset(to)
-    return sendButtons(to, ' ', [{ id: 'back_main', title: 'Main Menu' }])
+    return sendButtons(to, 'What would you like to do?', [{ id: 'back_main', title: 'Main Menu' }])
   }
 
   const statusMap = new Map((availRes.data ?? []).map(a => [a.catch_item_id, a.status as string]))
@@ -273,7 +282,7 @@ async function showStaffView(to: string, staff: StaffMember): Promise<void> {
     await sendWhatsAppMessage(to, `👥 *Team (${data.length})*\n\n${lines.join('\n\n')}`)
   }
   reset(to)
-  return sendButtons(to, ' ', [
+  return sendButtons(to, 'What would you like to do?', [
     { id: 'main_staff', title: 'Staff Menu' },
     { id: 'back_main', title: 'Main Menu' },
   ])
@@ -313,9 +322,8 @@ async function handleAddName(msg: IncomingMessage, session: Session, _staff: Sta
   advance(msg.senderId, 'staff_add_phone', { newName: name })
   await sendWhatsAppMessage(
     msg.senderId,
-    `What is *${name}'s WhatsApp number*?\n\nEnter with country code, digits only.\nExample: *919876543210*`
+    `What is *${name}'s WhatsApp number*?\n\nEnter with country code, digits only.\nExample: *919876543210*\n\nType *menu* to cancel.`
   )
-  return sendButtons(msg.senderId, ' ', [{ id: 'back_main', title: 'Main Menu' }])
 }
 
 // Add — step 3: phone → save + notify
@@ -366,7 +374,7 @@ async function startRemoveStaff(to: string): Promise<void> {
   if (removable.length === 0) {
     await sendWhatsAppMessage(to, 'No staff to remove (the primary manager cannot be removed).')
     reset(to)
-    return sendButtons(to, ' ', [{ id: 'back_main', title: 'Main Menu' }])
+    return sendButtons(to, 'What would you like to do?', [{ id: 'back_main', title: 'Main Menu' }])
   }
 
   advance(to, 'staff_rem_pick')
@@ -493,9 +501,8 @@ async function handleBookName(msg: IncomingMessage, session: Session, _staff: St
   advance(msg.senderId, 'book_phone', { bkName: name })
   await sendWhatsAppMessage(
     msg.senderId,
-    `*Step 2 of 6*\nGuest's WhatsApp number?\n\nDigits only with country code.\nExample: *919876543210*`
+    `*Step 2 of 6*\nGuest's WhatsApp number?\n\nDigits only with country code.\nExample: *919876543210*\n\nType *menu* to cancel.`
   )
-  return sendButtons(msg.senderId, ' ', [{ id: 'back_main', title: 'Main Menu' }])
 }
 
 async function handleBookPhone(msg: IncomingMessage, session: Session, _staff: StaffMember): Promise<void> {
@@ -642,10 +649,10 @@ async function handleBookFloor(
   msg: IncomingMessage, id: string, session: Session, _staff: StaffMember
 ): Promise<void> {
   const floorMap: Record<string, string> = {
-    fl_terrace: 'Terrace',
-    fl_floor1: 'Floor 1',
-    fl_floor2: 'Floor 2',
-    fl_private: 'Private Room',
+    fl_terrace: 'terrace',
+    fl_floor1: 'floor1',
+    fl_floor2: 'floor2',
+    fl_private: 'private',
   }
   const floor = floorMap[id]
   if (!floor) {
@@ -667,7 +674,7 @@ async function handleBookFloor(
   const dispTime = fmtTime(bkTime)
 
   return sendButtons(msg.senderId,
-    `*Booking Summary*\n\n👤 ${bkName}\n📱 ${bkPhone}\n👥 ${bkParty} guests\n📅 ${dispDate}\n🕐 ${dispTime}\n📍 ${floor}\n\nConfirm?`,
+    `*Booking Summary*\n\n👤 ${bkName}\n📱 ${bkPhone}\n👥 ${bkParty} guests\n📅 ${dispDate}\n🕐 ${dispTime}\n📍 ${floorLabel(floor)}\n\nConfirm?`,
     [
       { id: 'bk_confirm', title: 'Confirm Booking' },
       { id: 'bk_discard', title: 'Discard' },
@@ -711,14 +718,18 @@ async function handleBookConfirm(
 
   await sendWhatsAppMessage(
     msg.senderId,
-    `✅ Booking confirmed!\n\n*Ref:* ${bookingRef}\n👤 ${bkName} × ${bkParty}\n📅 ${dispDate} at ${dispTime}\n📍 ${bkFloor}`
+    `✅ Booking confirmed!\n\n*Ref:* ${bookingRef}\n👤 ${bkName} × ${bkParty}\n📅 ${dispDate} at ${dispTime}\n📍 ${floorLabel(bkFloor)}`
   )
 
-  // Guest confirmation (best effort — they may not be in the 24h window)
-  sendWhatsAppMessage(
-    bkPhone,
-    `Hello ${bkName}! Your table at *Sanadige Delhi* is confirmed.\n\n📅 ${dispDate}\n🕐 ${dispTime}\n👥 ${bkParty} guests\n📍 ${bkFloor}\n*Ref:* ${bookingRef}\n\nWe look forward to seeing you! For any changes, call us at +91 91678 85275.`
-  ).catch(() => {})
+  // Guest confirmation via approved template — works even if guest has never messaged the bot
+  sendBookingConfirmationTemplate(bkPhone, {
+    name: bkName,
+    date: dispDate,
+    time: dispTime,
+    party: bkParty,
+    floor: floorLabel(bkFloor),
+    ref: bookingRef,
+  }).catch(err => console.warn('[staff-menu] Guest confirmation failed:', err?.message ?? err))
 
   reset(msg.senderId)
   return sendButtons(msg.senderId, 'What next?', [

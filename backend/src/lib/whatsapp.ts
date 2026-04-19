@@ -18,6 +18,32 @@ export async function sendWhatsAppMessage(to: string, text: string): Promise<voi
   await post({ messaging_product: 'whatsapp', to, type: 'text', text: { body: text } })
 }
 
+export async function sendBookingConfirmationTemplate(
+  to: string,
+  params: { name: string; date: string; time: string; party: string; floor: string; ref: string }
+): Promise<void> {
+  await post({
+    messaging_product: 'whatsapp',
+    to,
+    type: 'template',
+    template: {
+      name: 'booking_confirmation',
+      language: { code: 'en' },
+      components: [{
+        type: 'body',
+        parameters: [
+          { type: 'text', text: params.name },
+          { type: 'text', text: params.date },
+          { type: 'text', text: params.time },
+          { type: 'text', text: params.party },
+          { type: 'text', text: params.floor },
+          { type: 'text', text: params.ref },
+        ],
+      }],
+    },
+  })
+}
+
 export interface WaButton { id: string; title: string }
 
 export async function sendButtons(to: string, body: string, buttons: WaButton[]): Promise<void> {

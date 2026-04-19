@@ -5,8 +5,14 @@ import { getSupabase } from '@/lib/supabase'
 import { signJwt, verifyJwt, type Role, type JwtPayload } from '@/lib/auth'
 import { backendPost } from '@/lib/backend'
 
+function normalizePhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '')
+  if (digits.length === 10) return `91${digits}`
+  return digits
+}
+
 export async function sendOtp(phone: string): Promise<{ ok: boolean }> {
-  await backendPost('/auth/send-otp', { phone })
+  await backendPost('/auth/send-otp', { phone: normalizePhone(phone) })
   return { ok: true }
 }
 
@@ -14,13 +20,14 @@ export async function verifyOtp(
   phone: string,
   code: string
 ): Promise<{ error?: string }> {
+  const normalized = normalizePhone(phone)
   const supabase = getSupabase()
   const now = new Date().toISOString()
 
   const { data: otp } = await supabase
     .from('staff_otps')
     .select('id, code, expires_at, used')
-    .eq('phone', phone)
+    .eq('phone', normalized)
     .eq('used', false)
     .gt('expires_at', now)
     .order('created_at', { ascending: false })
@@ -36,7 +43,7 @@ export async function verifyOtp(
   const { data: staff } = await supabase
     .from('staff')
     .select('phone, name, role')
-    .eq('phone', phone)
+    .eq('phone', normalized)
     .single()
 
   if (!staff) return { error: 'Staff not found' }

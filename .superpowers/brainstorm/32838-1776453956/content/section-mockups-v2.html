@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sanadige — Refined Sections</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #ede9e3; color: #1a2e1a; padding: 28px; }
+
+  h2 { font-size: 17px; font-weight: 700; color: #1a2e1a; margin-bottom: 4px; }
+  .sub { font-size: 12px; color: #6b7280; margin-bottom: 28px; }
+  .screens { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .screen-label { font-size: 10px; font-weight: 700; color: #9ca3af; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 10px; }
+
+  .screen {
+    background: #f8f7f4;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.10), 0 1px 0 rgba(255,255,255,0.8) inset;
+    border: 1px solid #ddd9d2;
+  }
+
+  /* Screen top bar */
+  .screen-topbar {
+    background: #ffffff;
+    border-bottom: 1px solid #e8e3dc;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .topbar-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+  }
+  .topbar-text h3 { font-size: 14px; font-weight: 700; color: #1a2e1a; }
+  .topbar-text p { font-size: 11px; color: #9ca3af; margin-top: 1px; }
+  .topbar-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+  .btn {
+    padding: 8px 16px; border-radius: 9px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; border: none;
+    letter-spacing: -0.1px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #1a3a2a, #2d5a3d);
+    color: #f8f7f4;
+    box-shadow: 0 2px 8px rgba(26,58,42,0.25);
+  }
+  .btn-ghost {
+    background: #f3f0eb;
+    color: #374151;
+    border: 1px solid #e8e3dc;
+  }
+  .btn-sm { padding: 6px 12px; font-size: 11px; }
+
+  /* Summary bar */
+  .summary-bar {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid #e8e3dc;
+    background: #fafaf8;
+  }
+  .summary-item {
+    flex: 1;
+    padding: 10px 16px;
+    border-right: 1px solid #e8e3dc;
+  }
+  .summary-item:last-child { border-right: none; }
+  .summary-label { font-size: 9px; font-weight: 700; color: #9ca3af; letter-spacing: 0.8px; text-transform: uppercase; }
+  .summary-val { font-size: 18px; font-weight: 800; color: #1a2e1a; letter-spacing: -0.5px; margin-top: 1px; }
+  .summary-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+
+  /* CATCH */
+  .catch-body { padding: 16px; }
+  .catch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .catch-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e8e3dc;
+    padding: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .catch-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: 12px 0 0 12px;
+  }
+  .catch-card.available::before { background: linear-gradient(180deg, #22c55e, #16a34a); }
+  .catch-card.sold-out::before { background: linear-gradient(180deg, #ef4444, #dc2626); }
+  .catch-card.tomorrow::before { background: linear-gradient(180deg, #f59e0b, #d97706); }
+  .catch-card.sold-out { opacity: 0.65; }
+
+  .catch-row1 { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+  .catch-name { font-size: 13px; font-weight: 700; color: #1a2e1a; line-height: 1.3; }
+  .catch-region { font-size: 10px; color: #9ca3af; margin-top: 2px; }
+
+  /* Toggle */
+  .toggle-wrap { position: relative; flex-shrink: 0; margin-left: 6px; margin-top: 2px; }
+  .toggle-track {
+    width: 38px; height: 22px;
+    border-radius: 11px;
+    cursor: pointer;
+    transition: background 0.25s;
+    border: none;
+    display: block;
+  }
+  .toggle-track.on { background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 0 0 2px #22c55e30; }
+  .toggle-track.off { background: #d1d5db; }
+  .toggle-thumb {
+    position: absolute;
+    top: 3px;
+    width: 16px; height: 16px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: left 0.25s;
+    pointer-events: none;
+  }
+  .toggle-track.on + .toggle-thumb { left: 19px; }
+  .toggle-track.off + .toggle-thumb { left: 3px; }
+
+  .catch-preps {
+    font-size: 10px; color: #6b7280;
+    display: flex; flex-wrap: wrap; gap: 4px;
+    margin-bottom: 8px;
+  }
+  .prep-chip {
+    background: #f3f0eb;
+    border: 1px solid #e8e3dc;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 9px;
+    font-weight: 500;
+    color: #6b7280;
+  }
+  .catch-note-field {
+    background: #f8f7f4;
+    border: 1px solid #e8e3dc;
+    border-radius: 7px;
+    padding: 6px 8px;
+    font-size: 10px;
+    color: #6b7280;
+    font-style: italic;
+  }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 9px; font-weight: 700;
+    padding: 3px 8px; border-radius: 20px;
+    margin-top: 8px;
+  }
+  .pill-available { background: #dcfce7; color: #166534; }
+  .pill-sold-out { background: #fee2e2; color: #991b1b; }
+  .pill-tomorrow { background: #fef9c3; color: #854d0e; }
+
+  /* STAFF */
+  .staff-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+
+  .staff-card {
+    background: #ffffff;
+    border: 1px solid #e8e3dc;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s;
+  }
+  .staff-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .staff-card.primary-manager { background: linear-gradient(135deg, #f0fdf4, #f8fff9); border-color: #bbf7d0; }
+
+  .staff-avatar {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+  .avatar-manager { background: linear-gradient(135deg, #1a3a2a, #2d5a3d); color: #f0fdf4; }
+  .avatar-chef { background: linear-gradient(135deg, #c2410c, #ea580c); color: #fff7ed; }
+  .avatar-host { background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: #eff6ff; }
+
+  .staff-info { flex: 1; min-width: 0; }
+  .staff-name { font-size: 13px; font-weight: 700; color: #1a2e1a; }
+  .staff-phone { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+  .staff-meta { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+
+  .role-tag {
+    font-size: 9px; font-weight: 700;
+    padding: 3px 8px; border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+  .role-manager { background: #fee2e2; color: #991b1b; }
+  .role-chef { background: #ffedd5; color: #9a3412; }
+  .role-host { background: #dbeafe; color: #1e40af; }
+  .primary-tag {
+    font-size: 9px; font-weight: 600;
+    padding: 3px 8px; border-radius: 20px;
+    background: #dcfce7; color: #166534;
+  }
+
+  .staff-actions { display: flex; gap: 6px; align-items: center; }
+  .icon-btn {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    border: 1px solid #e8e3dc;
+    background: #f8f7f4;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+  .icon-btn:hover { background: #fee2e2; border-color: #fca5a5; }
+  .icon-btn.edit:hover { background: #f0fdf4; border-color: #bbf7d0; }
+
+  .add-staff-card {
+    background: #ffffff;
+    border: 2px dashed #d1cdc7;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: #9ca3af;
+    font-size: 12px; font-weight: 600;
+  }
+  .add-staff-card:hover { border-color: #1a3a2a; color: #1a3a2a; background: #f0fdf4; }
+  .add-icon {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: #f3f0eb;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .add-staff-card:hover .add-icon { background: #dcfce7; }
+</style>
+</head>
+<body>
+
+<h2>Refined Section Mockups</h2>
+<p class="sub">More premium feel — better spacing, hierarchy, and visual depth.</p>
+
+<div class="screens">
+
+  <!-- CATCH MANAGEMENT -->
+  <div>
+    <div class="screen-label">🐟 Today's Catch</div>
+    <div class="screen">
+      <div class="screen-topbar">
+        <div class="topbar-icon" style="background:#f0fdf4">🐟</div>
+        <div class="topbar-text">
+          <h3>Today's Catch</h3>
+          <p>Friday, 18 Apr · Updated 2h ago by Chef Rajan</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost btn-sm">📋 History</button>
+          <button class="btn btn-primary btn-sm">+ Add Item</button>
+        </div>
+      </div>
+
+      <div class="summary-bar">
+        <div class="summary-item">
+          <div class="summary-label">Available</div>
+          <div class="summary-val"><span class="summary-dot" style="background:#22c55e"></span>7</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Sold Out</div>
+          <div class="summary-val"><span class="summary-dot" style="background:#ef4444"></span>1</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Tomorrow</div>
+          <div class="summary-val"><span class="summary-dot" style="background:#f59e0b"></span>1</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Total Items</div>
+          <div class="summary-val" style="color:#6b7280">9</div>
+        </div>
+      </div>
+
+      <div class="catch-body">
+        <div class="catch-grid">
+
+          <div class="catch-card available">
+            <div class="catch-row1">
+              <div>
+                <div class="catch-name">Anjal · Kingfish</div>
+                <div class="catch-region">Goan · Large pieces today</div>
+              </div>
+              <div class="toggle-wrap">
+                <button class="toggle-track on"></button>
+                <div class="toggle-thumb" style="left:19px"></div>
+              </div>
+            </div>
+            <div class="catch-preps">
+              <span class="prep-chip">Tawa Fry</span>
+              <span class="prep-chip">Konkani Curry</span>
+              <span class="prep-chip">Grill</span>
+            </div>
+            <div class="catch-note-field">Large cuts — good for 2–3 pax</div>
+            <div><span class="status-pill pill-available">● Available</span></div>
+          </div>
+
+          <div class="catch-card available">
+            <div class="catch-row1">
+              <div>
+                <div class="catch-name">Mud Crab</div>
+                <div class="catch-region">Live · Limited to 4 crabs</div>
+              </div>
+              <div class="toggle-wrap">
+                <button class="toggle-track on"></button>
+                <div class="toggle-thumb" style="left:19px"></div>
+              </div>
+            </div>
+            <div class="catch-preps">
+              <span class="prep-chip">Gassi</span>
+              <span class="prep-chip">Butter Garlic</span>
+              <span class="prep-chip">Steam</span>
+            </div>
+            <div class="catch-note-field">Limit 1 per table today</div>
+            <div><span class="status-pill pill-available">● Available</span></div>
+          </div>
+
+          <div class="catch-card available">
+            <div class="catch-row1">
+              <div>
+                <div class="catch-name">Silver Pomfret</div>
+                <div class="catch-region">Mangalorean</div>
+              </div>
+              <div class="toggle-wrap">
+                <button class="toggle-track on"></button>
+                <div class="toggle-thumb" style="left:19px"></div>
+              </div>
+            </div>
+            <div class="catch-preps">
+              <span class="prep-chip">Rawa Fry</span>
+              <span class="prep-chip">Curry</span>
+            </div>
+            <div class="catch-note-field" style="color:#d1cdc7;font-style:italic">Add a note...</div>
+            <div><span class="status-pill pill-available">● Available</span></div>
+          </div>
+
+          <div class="catch-card sold-out">
+            <div class="catch-row1">
+              <div>
+                <div class="catch-name">Lobster</div>
+                <div class="catch-region">Not in today</div>
+              </div>
+              <div class="toggle-wrap">
+                <button class="toggle-track off"></button>
+                <div class="toggle-thumb" style="left:3px"></div>
+              </div>
+            </div>
+            <div class="catch-preps">
+              <span class="prep-chip">Thermidor</span>
+              <span class="prep-chip">Butter Garlic</span>
+            </div>
+            <div><span class="status-pill pill-sold-out">● Sold Out</span></div>
+          </div>
+
+          <div class="catch-card tomorrow">
+            <div class="catch-row1">
+              <div>
+                <div class="catch-name">Tiger Prawns</div>
+                <div class="catch-region">Back tomorrow</div>
+              </div>
+              <div class="toggle-wrap">
+                <button class="toggle-track off"></button>
+                <div class="toggle-thumb" style="left:3px"></div>
+              </div>
+            </div>
+            <div class="catch-preps">
+              <span class="prep-chip">Koliwada</span>
+              <span class="prep-chip">Gassi</span>
+            </div>
+            <div><span class="status-pill pill-tomorrow">● Tomorrow</span></div>
+          </div>
+
+          <div class="catch-card available">
+            <div class="catch-row1">
+              <div>
+                <div class="catch-name">Surmai</div>
+                <div class="catch-region">Kerala</div>
+              </div>
+              <div class="toggle-wrap">
+                <button class="toggle-track on"></button>
+                <div class="toggle-thumb" style="left:19px"></div>
+              </div>
+            </div>
+            <div class="catch-preps">
+              <span class="prep-chip">Tawa Fry</span>
+              <span class="prep-chip">Tandoor</span>
+            </div>
+            <div class="catch-note-field" style="color:#d1cdc7;font-style:italic">Add a note...</div>
+            <div><span class="status-pill pill-available">● Available</span></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAFF MANAGEMENT -->
+  <div>
+    <div class="screen-label">👥 Staff Management</div>
+    <div class="screen">
+      <div class="screen-topbar">
+        <div class="topbar-icon" style="background:#f0fdf4">👥</div>
+        <div class="topbar-text">
+          <h3>Staff</h3>
+          <p>4 members · All have WhatsApp dashboard access</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm">+ Add Staff</button>
+        </div>
+      </div>
+
+      <div class="summary-bar">
+        <div class="summary-item">
+          <div class="summary-label">Managers</div>
+          <div class="summary-val"><span class="summary-dot" style="background:#ef4444"></span>1</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Chefs</div>
+          <div class="summary-val"><span class="summary-dot" style="background:#f97316"></span>1</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Hosts</div>
+          <div class="summary-val"><span class="summary-dot" style="background:#3b82f6"></span>2</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Total</div>
+          <div class="summary-val" style="color:#6b7280">4</div>
+        </div>
+      </div>
+
+      <div class="staff-body">
+
+        <div class="staff-card primary-manager">
+          <div class="staff-avatar avatar-manager">HA</div>
+          <div class="staff-info">
+            <div class="staff-name">Harsh Agrawal</div>
+            <div class="staff-phone">+91 91678 85275</div>
+            <div class="staff-meta">
+              <span class="role-tag role-manager">Manager</span>
+              <span class="primary-tag">✓ Primary</span>
+            </div>
+          </div>
+          <div class="staff-actions">
+            <div style="font-size:10px;color:#9ca3af;font-weight:500">Protected</div>
+          </div>
+        </div>
+
+        <div class="staff-card">
+          <div class="staff-avatar avatar-chef">RK</div>
+          <div class="staff-info">
+            <div class="staff-name">Rajan Kumar</div>
+            <div class="staff-phone">+91 98765 43210</div>
+            <div class="staff-meta">
+              <span class="role-tag role-chef">Chef</span>
+              <span style="font-size:10px;color:#9ca3af">Added 14 Apr</span>
+            </div>
+          </div>
+          <div class="staff-actions">
+            <div class="icon-btn edit">✏️</div>
+            <div class="icon-btn">🗑️</div>
+          </div>
+        </div>
+
+        <div class="staff-card">
+          <div class="staff-avatar avatar-host">SV</div>
+          <div class="staff-info">
+            <div class="staff-name">Sunita Verma</div>
+            <div class="staff-phone">+91 87654 32109</div>
+            <div class="staff-meta">
+              <span class="role-tag role-host">Host</span>
+              <span style="font-size:10px;color:#9ca3af">Added 17 Apr</span>
+            </div>
+          </div>
+          <div class="staff-actions">
+            <div class="icon-btn edit">✏️</div>
+            <div class="icon-btn">🗑️</div>
+          </div>
+        </div>
+
+        <div class="staff-card">
+          <div class="staff-avatar avatar-host">AM</div>
+          <div class="staff-info">
+            <div class="staff-name">Arjun Mehta</div>
+            <div class="staff-phone">+91 76543 21098</div>
+            <div class="staff-meta">
+              <span class="role-tag role-host">Host</span>
+              <span style="font-size:10px;color:#9ca3af">Added 17 Apr</span>
+            </div>
+          </div>
+          <div class="staff-actions">
+            <div class="icon-btn edit">✏️</div>
+            <div class="icon-btn">🗑️</div>
+          </div>
+        </div>
+
+        <div class="add-staff-card">
+          <div class="add-icon">＋</div>
+          Add new staff member
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

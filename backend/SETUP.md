@@ -10,9 +10,7 @@ Before starting, make sure you have:
 
 - Node.js 20 or higher (`node --version`)
 - npm 9 or higher (`npm --version`)
-- Docker Desktop installed and running — [docker.com/get-started](https://www.docker.com/get-started)
-- Google Cloud CLI (`gcloud`) installed — [cloud.google.com/sdk/docs/install](https://cloud.google.com/sdk/docs/install)
-- A Google Cloud account with billing enabled — [console.cloud.google.com](https://console.cloud.google.com)
+- An AWS account — [aws.amazon.com](https://aws.amazon.com) (account must be fully activated — add payment method and complete identity verification)
 - A Supabase account — [supabase.com](https://supabase.com)
 - An Anthropic account with API access — [console.anthropic.com](https://console.anthropic.com)
 - A Meta Developer account — [developers.facebook.com](https://developers.facebook.com)
@@ -35,7 +33,7 @@ Expected output: packages installed with no errors.
 
 1. Go to [supabase.com](https://supabase.com) and sign in.
 2. Click **New project**.
-3. Choose a name (e.g. `sanadige-delhi`), set a strong database password, select region **Mumbai (ap-south-1)** for lowest latency.
+3. Choose a name (e.g. `sanadige-delhi`), set a strong database password, select region **Mumbai (ap-south-1)** for lowest latency. (SanadigeDelhi@1)
 4. Wait for the project to finish provisioning (about 60 seconds).
 5. Go to **Project Settings → API**.
 6. Copy the following values — you will need them in Step 5:
@@ -163,6 +161,7 @@ npm test
 ```
 
 Expected output:
+
 ```
 Test Files  8 passed (8)
      Tests  29 passed (29)
@@ -189,104 +188,239 @@ curl http://localhost:3000/health
 
 ---
 
-## Step 10 — Set up Google Cloud project
+## Step 10 — Launch an EC2 instance
 
-### 10a — Authenticate and set project
+**Before starting:** In the AWS Console, set the region selector (top-right) to **Asia Pacific (Mumbai) — ap-south-1**.
 
-```bash
-gcloud auth login
-gcloud config set project YOUR_PROJECT_ID
-```
+### 10a — Create a key pair
 
-Replace `YOUR_PROJECT_ID` with your GCP project ID (visible in the Google Cloud Console top bar).
+You need a key pair to SSH into your server.
 
-### 10b — Enable required APIs
+1. In the AWS Console, search for **EC2** and open it.
+2. In the left sidebar, click **Key Pairs** (under Network & Security).
+3. Click **Create key pair**.
+4. Set:
+   - **Name:** `sanadige-key`
+   - **Key pair type:** RSA
+   - **Private key file format:** `.pem` (Mac/Linux) or `.ppk` (Windows/PuTTY)
+5. Click **Create key pair**. The `.pem` file downloads automatically — **save it somewhere safe**, you cannot download it again.
+6. On Mac/Linux, restrict its permissions:
+   ```bash
+   chmod 400 ~/Downloads/sanadige-key.pem
+   ```
 
-```bash
-gcloud services enable run.googleapis.com artifactregistry.googleapis.com
-```
+### 10b — Launch the instance
 
-This takes about 30 seconds. Expected output: `Operation finished successfully.`
+1. In the EC2 left sidebar, click **Instances** → **Launch instances**.
+2. **Name:** `sanadige-backend`
+3. **AMI (operating system):** Select **Ubuntu Server 22.04 LTS** (Free tier eligible)
+4. **Instance type:** `t2.micro` (Free tier — 750 hours/month free for 12 months)
+5. **Key pair:** Select `sanadige-key`
+6. **Network settings:** Click **Edit** and configure the security group:
+   - Keep the default SSH rule (port 22, source: Anywhere)
+   - Click **Add security group rule** and add:
+     - Type: Custom TCP | Port: 3000 | Source: Anywhere (0.0.0.0/0)
+     - This is the port the Node.js app listens on
+7. **Storage:** Keep the default 8 GB (free tier includes 30 GB, you can leave it at 8).
+8. Click **Launch instance**.
 
-### 10c — Create an Artifact Registry repository
+Wait about 60 seconds for the instance to reach **Running** state.
 
-```bash
-gcloud artifacts repositories create sanadige \
-  --repository-format=docker \
-  --location=asia-south1 \
-  --description="Sanadige Docker images"
-```
+### 10c — Get a static IP address (Elastic IP)
 
-### 10d — Configure Docker to authenticate with Artifact Registry
+By default, EC2 public IPs change every time the instance restarts. An Elastic IP is a static IP that stays the same — you need this for the Meta webhook URL.
 
-```bash
-gcloud auth configure-docker asia-south1-docker.pkg.dev
-```
+1. In the EC2 left sidebar, click **Elastic IPs** (under Network & Security).
+2. Click **Allocate Elastic IP address** → **Allocate**.
+3. Select the newly created Elastic IP → click **Actions** → **Associate Elastic IP address**.
+4. Under **Instance**, select your `sanadige-backend` instance.
+5. Click **Associate**.
+
+Copy the Elastic IP — you will use it as `YOUR_SERVER_IP` in all commands below.
 
 ---
 
-## Step 11 — Build and deploy to Cloud Run
+## Step 11 — Set up the server
 
-### 11a — Build the Docker image
-
-From the `backend/` directory:
+### 11a — Connect via SSH
 
 ```bash
-docker build -t asia-south1-docker.pkg.dev/YOUR_PROJECT_ID/sanadige/backend:latest .
+ssh -i ~/Downloads/sanadige-key.pem ubuntu@YOUR_SERVER_IP
 ```
 
-This uses the multi-stage Dockerfile: builds TypeScript in stage 1, produces a lean production image in stage 2. Build takes 1–2 minutes on first run.
+You should see a welcome message: `Welcome to Ubuntu 22.04 LTS`. You are now inside your server.
 
-### 11b — Push the image to Artifact Registry
+### 11b — Install Node.js 20
 
 ```bash
-docker push asia-south1-docker.pkg.dev/YOUR_PROJECT_ID/sanadige/backend:latest
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+node --version   # should print v20.x.x
 ```
 
-### 11c — Deploy to Cloud Run
+### 11c — Install git and clone the repository
 
 ```bash
-gcloud run deploy sanadige-backend \
-  --image asia-south1-docker.pkg.dev/YOUR_PROJECT_ID/sanadige/backend:latest \
-  --platform managed \
-  --region asia-south1 \
-  --allow-unauthenticated \
-  --min-instances 1 \
-  --set-env-vars "SUPABASE_URL=your-value,SUPABASE_SERVICE_ROLE_KEY=your-value,ANTHROPIC_API_KEY=your-value,WHATSAPP_TOKEN=your-value,WHATSAPP_PHONE_NUMBER_ID=your-value,WHATSAPP_VERIFY_TOKEN=your-value,INSTAGRAM_PAGE_ACCESS_TOKEN=your-value,INSTAGRAM_VERIFY_TOKEN=your-value,MANAGER_PHONE=your-value"
+sudo apt-get install -y git
+git clone https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git sanadige
+cd sanadige/backend
 ```
 
-`--min-instances 1` keeps one instance warm at all times — no cold start delays on the first message of the day. Cost is approximately $7–10/month.
+Replace `YOUR_GITHUB_USERNAME` and `YOUR_REPO_NAME` with your actual repository details. If the repository is private, you will need to authenticate with a GitHub personal access token.
 
-### 11d — Get your permanent service URL
+### 11d — Install dependencies and build
 
 ```bash
-gcloud run services describe sanadige-backend \
-  --platform managed \
-  --region asia-south1 \
-  --format "value(status.url)"
+npm install
+npm run build
 ```
 
-Output will look like: `https://sanadige-backend-xxxxxxxxxxxx-el.a.run.app`
+Expected output: TypeScript compiles with no errors, `dist/` directory is created.
 
-This URL is **permanent** — it does not change between deployments.
-
-### 11e — Verify deployment
+### 11e — Create the environment file
 
 ```bash
-curl https://sanadige-backend-xxxxxxxxxxxx-el.a.run.app/health
-# {"ok":true,"ts":"2026-04-17T..."}
+nano .env
 ```
 
-### 11f — Attach a custom domain (optional but recommended)
+Paste in the following and fill in your real values:
 
 ```bash
-gcloud run domain-mappings create \
-  --service sanadige-backend \
-  --domain api.sanadige.in \
-  --region asia-south1
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+ANTHROPIC_API_KEY=sk-ant-api03-...
+
+WHATSAPP_TOKEN=EAAxxxxxxx...
+WHATSAPP_PHONE_NUMBER_ID=123456789012345
+WHATSAPP_VERIFY_TOKEN=sanadige_webhook_secret_2026
+
+INSTAGRAM_PAGE_ACCESS_TOKEN=EAAxxxxxxx...
+INSTAGRAM_VERIFY_TOKEN=sanadige_instagram_secret_2026
+
+MANAGER_PHONE=919XXXXXXXXX
+
+PORT=3000
 ```
 
-Follow the DNS instructions shown to add a CNAME record at your domain registrar. Once propagated, `https://api.sanadige.in` will route to your service.
+Save and exit: press `Ctrl+X`, then `Y`, then `Enter`.
+
+### 11f — Test the server runs
+
+```bash
+node dist/index.js
+```
+
+Expected output:
+```
+Sanadige backend running on :3000
+```
+
+Press `Ctrl+C` to stop it. If you see a ZodError, check that all required env vars are filled in `.env`.
+
+### 11g — Install PM2 and keep the server running permanently
+
+PM2 is a process manager that keeps Node.js apps running after you disconnect from SSH, and restarts them automatically if they crash.
+
+```bash
+sudo npm install -g pm2
+pm2 start dist/index.js --name sanadige-backend
+pm2 status   # should show sanadige-backend as "online"
+```
+
+**Make PM2 start on server reboot:**
+
+```bash
+pm2 startup
+```
+
+This prints a command starting with `sudo env PATH=...`. **Copy and run that exact command** — it registers PM2 with systemd so it restarts on reboot.
+
+Then save the current process list:
+
+```bash
+pm2 save
+```
+
+### 11h — Verify the server is running
+
+From your local machine:
+
+```bash
+curl http://YOUR_SERVER_IP:3000/health
+# {"ok":true,"ts":"2026-04-..."}
+```
+
+### 11i — Set up HTTPS with nginx and Certbot
+
+Meta requires an HTTPS webhook URL. You need a domain name pointing to your server first (set up the custom domain in 11j before running these steps).
+
+Install nginx as a reverse proxy:
+
+```bash
+sudo apt-get install -y nginx
+```
+
+Create a config file for your site:
+
+```bash
+sudo nano /etc/nginx/sites-available/sanadige
+```
+
+Paste this (replace `api.sanadige.in` with your domain):
+
+```nginx
+server {
+    listen 80;
+    server_name api.sanadige.in;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+Save and exit (`Ctrl+X`, `Y`, `Enter`), then enable the config:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/sanadige /etc/nginx/sites-enabled/
+sudo nginx -t          # should print "syntax is ok"
+sudo systemctl restart nginx
+```
+
+Install Certbot to get a free SSL certificate:
+
+```bash
+sudo snap install --classic certbot
+sudo ln -s /snap/bin/certbot /usr/bin/certbot
+sudo certbot --nginx -d api.sanadige.in
+```
+
+Follow the prompts — enter your email, agree to terms. Certbot automatically modifies your nginx config to handle HTTPS and sets up auto-renewal. When complete, your backend is reachable at `https://api.sanadige.in`.
+
+**Verify:**
+```bash
+curl https://api.sanadige.in/health
+# {"ok":true,"ts":"2026-04-..."}
+```
+
+### 11j — Point your domain to the server
+
+Before running Certbot, add an A record at your DNS provider:
+
+| Type | Name | Value |
+|------|------|-------|
+| A | `api` | `YOUR_SERVER_IP` (the Elastic IP) |
+
+DNS propagation takes 1–30 minutes. You can check with:
+```bash
+nslookup api.sanadige.in
+```
+
+Once it resolves to your Elastic IP, run the Certbot step (11i) above.
 
 ---
 
@@ -295,7 +429,7 @@ Follow the DNS instructions shown to add a CNAME record at your domain registrar
 1. Go to [developers.facebook.com](https://developers.facebook.com) → Your App → **WhatsApp → Configuration** (left sidebar).
 2. Under **Webhook**, click **Edit**.
 3. Enter:
-   - **Callback URL**: `https://sanadige-backend-xxxxxxxxxxxx-el.a.run.app/webhooks/whatsapp`
+   - **Callback URL**: `https://abcdefghij.ap-south-1.awsapprunner.com/webhooks/whatsapp`
    - **Verify token**: the same value as `WHATSAPP_VERIFY_TOKEN`
 4. Click **Verify and Save**. Meta will send a GET request to your server; your server will respond with the challenge. If verification fails, check that the deployment is running and the token matches exactly.
 5. Under **Webhook fields**, click **Manage** and subscribe to: **messages** ✓
@@ -308,7 +442,7 @@ Follow the DNS instructions shown to add a CNAME record at your domain registrar
 1. Go to your Meta App → **Instagram → Webhooks** (left sidebar).
 2. Click **Add Callback URL**.
 3. Enter:
-   - **Callback URL**: `https://sanadige-backend-xxxxxxxxxxxx-el.a.run.app/webhooks/instagram`
+   - **Callback URL**: `https://abcdefghij.ap-south-1.awsapprunner.com/webhooks/instagram`
    - **Verify token**: the same value as `INSTAGRAM_VERIFY_TOKEN`
 4. Click **Verify and Save**.
 5. Subscribe to the **messages** field.
@@ -323,7 +457,7 @@ Follow the DNS instructions shown to add a CNAME record at your domain registrar
 
 If you do not receive a reply:
 
-- Check Cloud Run logs: `gcloud run logs read sanadige-backend --region asia-south1 --limit 50`
+- Check PM2 logs: SSH into the server and run `pm2 logs sanadige-backend --lines 100`
 - Check that your phone number is added as a test recipient in the Meta Developer console (for test numbers, Meta restricts which numbers can receive messages)
 - Check the Supabase dashboard → Table Editor → `conversations` to see if the message was stored
 
@@ -367,18 +501,18 @@ Add as many dishes as needed. The `get_menu_item_detail` tool searches by name u
 
 ## Redeployment (after code changes)
 
-Whenever you push code changes, rebuild and redeploy:
+SSH into the server, pull the latest code, rebuild, and restart:
 
 ```bash
-docker build -t asia-south1-docker.pkg.dev/YOUR_PROJECT_ID/sanadige/backend:latest .
-docker push asia-south1-docker.pkg.dev/YOUR_PROJECT_ID/sanadige/backend:latest
-gcloud run deploy sanadige-backend \
-  --image asia-south1-docker.pkg.dev/YOUR_PROJECT_ID/sanadige/backend:latest \
-  --platform managed \
-  --region asia-south1
+ssh -i ~/Downloads/sanadige-key.pem ubuntu@YOUR_SERVER_IP
+cd sanadige/backend
+git pull
+npm install
+npm run build
+pm2 restart sanadige-backend
 ```
 
-Cloud Run performs a zero-downtime rolling update. The old version handles traffic until the new version is healthy.
+PM2 restarts the process with zero manual intervention. Traffic has a brief interruption (a few seconds) while the process restarts — acceptable for a staff operations tool.
 
 ---
 
@@ -395,18 +529,28 @@ One or more env vars are missing. The error will list exactly which ones. Check 
 
 ### WhatsApp message received but no reply sent
 
-Check Cloud Run logs: `gcloud run logs read sanadige-backend --region asia-south1 --limit 100`
+Check the live logs on the server:
+
+```bash
+ssh -i ~/Downloads/sanadige-key.pem ubuntu@YOUR_SERVER_IP
+pm2 logs sanadige-backend --lines 100
+```
 
 Common causes:
+
 - `ANTHROPIC_API_KEY` is wrong or rate-limited
-- `WHATSAPP_TOKEN` has expired (Meta tokens expire — regenerate in the developer console and update the Cloud Run env vars via `gcloud run services update`)
+- `WHATSAPP_TOKEN` has expired (Meta tokens expire — regenerate in the developer console, then update `.env` on the server and run `pm2 restart sanadige-backend`)
 
 ### Updating env vars after deployment
 
+SSH in, edit the `.env` file, and restart:
+
 ```bash
-gcloud run services update sanadige-backend \
-  --region asia-south1 \
-  --set-env-vars "WHATSAPP_TOKEN=new-value"
+ssh -i ~/Downloads/sanadige-key.pem ubuntu@YOUR_SERVER_IP
+cd sanadige/backend
+nano .env
+# make your changes, save with Ctrl+X → Y → Enter
+pm2 restart sanadige-backend
 ```
 
 ### Supabase error: row-level security
@@ -416,10 +560,11 @@ The backend uses the `service_role` key which bypasses RLS. If you see permissio
 ### Reminders not sending
 
 The reminder cron runs every 10 minutes. Check:
-1. Cloud Run logs for `[Reminder job]` entries
+
+1. PM2 logs: `pm2 logs sanadige-backend --lines 200` — look for `[Reminder job]` entries
 2. That bookings in the `bookings` table have `status = 'confirmed'` and `reminder_sent_at IS NULL`
 3. That the booking `datetime` is within 1h50m–2h from now (IST)
-4. That `--min-instances 1` is set — if the instance sleeps between requests the cron will not fire
+4. That PM2 is running: `pm2 status` — the process should show as `online`. If it shows `stopped`, run `pm2 start sanadige-backend`
 
 ---
 
@@ -433,4 +578,4 @@ Before going live with real customers:
 4. **Upgrade Supabase to Pro** (~$25/month) — enables daily backups, point-in-time recovery, and prevents the free tier from pausing after inactivity.
 5. **Set up Supabase Row Level Security (RLS)** on the `bookings` and `conversations` tables if you add any client-side access.
 6. **Monitor Claude API costs** — check [console.anthropic.com](https://console.anthropic.com) usage. Prompt caching is enabled by default and reduces costs by ~80% per repeated system prompt call.
-7. **Set up Cloud Run alerts** — in Google Cloud Console → Monitoring, create uptime checks and alert policies for the `/health` endpoint.
+7. **Set up server monitoring** — install a free uptime monitor like [UptimeRobot](https://uptimerobot.com) pointed at `https://api.sanadige.in/health`. It will alert you by email or SMS if the server goes down.

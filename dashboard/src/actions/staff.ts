@@ -1,13 +1,13 @@
 'use server'
 import { revalidatePath } from 'next/cache'
 import { getSupabase } from '@/lib/supabase'
-import { cloudRunPost } from '@/lib/cloud-run'
+import { backendPost } from '@/lib/backend'
 
 export async function addStaff(data: { name: string; phone: string; role: string }) {
   const supabase = getSupabase()
   await supabase.from('staff').upsert(data, { onConflict: 'phone' })
 
-  await cloudRunPost('/staff/welcome', {
+  await backendPost('/staff/welcome', {
     phone: data.phone,
     name: data.name,
     role: data.role,

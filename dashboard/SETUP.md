@@ -12,7 +12,7 @@ Before you start, make sure you have:
 - **npm 9+** — comes with Node. Check with `npm --version`.
 - **Git** — check with `git --version`.
 - **Vercel CLI** — install with `npm install -g vercel`. Verify with `vercel --version`.
-- **A running Sanadige backend** — the Cloud Run backend must be deployed and reachable. The dashboard calls it to send OTPs and WhatsApp confirmations. See `backend/SETUP.md` if it is not yet deployed.
+- **A running Sanadige backend** — the EC2 backend must be deployed and reachable at `https://api.sanadige.in`. The dashboard calls it to send OTPs and WhatsApp confirmations. See `backend/SETUP.md` if it is not yet deployed.
 - **A Supabase project** — the same one used by the backend. You need the URL, service role key, and anon key.
 - **A custom domain** (`dashboard.sanadige.in`) — you need access to the DNS settings for `sanadige.in`.
 - **A Vercel account** — free tier is fine. Sign up at [vercel.com](https://vercel.com).
@@ -28,7 +28,7 @@ Browser
   │                                                       │
   │    [enter phone] ──► sendOtp() Server Action          │
   │                          │                            │
-  │                          └─► POST /auth/send-otp ──► Cloud Run (Express)
+  │                          └─► POST /auth/send-otp ──► EC2 / nginx (Express)
   │                                                          │
   │                                                          ├─► Supabase: check staff table
   │                                                          ├─► Supabase: insert staff_otps
@@ -112,14 +112,21 @@ Keep the service role key secret — it bypasses Row Level Security and has full
 
 ---
 
-## Step 4 — Get your Cloud Run backend URL
+## Step 4 — Get your backend URL
 
-The dashboard calls the Cloud Run backend to send OTPs and WhatsApp booking confirmations.
+The dashboard calls the EC2 backend to send OTPs and WhatsApp booking confirmations.
 
-1. Open [console.cloud.google.com](https://console.cloud.google.com).
-2. Navigate to **Cloud Run** in the left menu.
-3. Click on your `sanadige-backend` service.
-4. At the top of the page, copy the **URL** (looks like `https://sanadige-backend-abc123-el.a.run.app`). This is your `CLOUD_RUN_URL`.
+If you set up a custom domain with nginx + Certbot (Step 11i in `backend/SETUP.md`), your `BACKEND_URL` is:
+
+```
+https://api.sanadige.in
+```
+
+If you have not yet set up a domain, you can temporarily use the EC2 public IP with HTTP (not suitable for production, but fine for local testing):
+
+```
+http://YOUR_SERVER_IP:3000
+```
 
 If the backend is not yet deployed, follow `backend/SETUP.md` first and return here.
 
@@ -159,7 +166,7 @@ SUPABASE_ANON_KEY=REPLACE_WITH_YOUR_ANON_KEY
 NEXT_PUBLIC_SUPABASE_URL=REPLACE_WITH_YOUR_PROJECT_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY=REPLACE_WITH_YOUR_ANON_KEY
 JWT_SECRET=REPLACE_WITH_YOUR_GENERATED_SECRET
-CLOUD_RUN_URL=REPLACE_WITH_YOUR_CLOUD_RUN_URL
+BACKEND_URL=REPLACE_WITH_YOUR_APP_RUNNER_URL
 ```
 
 **Important:** `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are the same values as `SUPABASE_URL` and `SUPABASE_ANON_KEY`. The `NEXT_PUBLIC_` prefix is what tells Next.js it is safe to send these to the browser — and the anon key is designed to be public (it respects Row Level Security). The service role key is never prefixed with `NEXT_PUBLIC_` and never leaves the server.
@@ -205,8 +212,8 @@ Open `http://localhost:3000` in your browser. You should be automatically redire
 5. You should be redirected to `/dashboard` (manager), `/dashboard/catch` (chef), or `/dashboard/bookings` (host) depending on the staff member's role.
 
 **If the WhatsApp message does not arrive:**
-- Check that the Cloud Run backend is running (open `CLOUD_RUN_URL/health` in your browser — it should return `{"ok":true,...}`).
-- Check the Cloud Run logs in Google Cloud Console for errors.
+- Check that the EC2 backend is running (open `BACKEND_URL/health` in your browser — it should return `{"ok":true,...}`).
+- Check server logs: SSH into the EC2 instance and run `pm2 logs sanadige-backend --lines 50`.
 - Verify the phone number is in the `staff` table in Supabase (`Table Editor → staff`).
 - The OTP endpoint always returns `{ ok: true }` even for unknown numbers (security feature), so lack of a message is the only signal.
 
@@ -288,7 +295,7 @@ The deployed app needs the same environment variables as your `.env.local`. Set 
 | `NEXT_PUBLIC_SUPABASE_URL` | same as SUPABASE_URL | |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same as SUPABASE_ANON_KEY | |
 | `JWT_SECRET` | your generated secret | Mark as **Sensitive** |
-| `CLOUD_RUN_URL` | your Cloud Run URL | |
+| `BACKEND_URL` | your App Runner URL | |
 
 After adding all 7 variables, you must redeploy for them to take effect:
 
@@ -342,9 +349,9 @@ Run through the full flow on the live URL:
 
 ---
 
-## Step 10 — Add the backend /auth/send-otp to Cloud Run CORS (if needed)
+## Step 10 — Add the backend /auth/send-otp to EC2 CORS (if needed)
 
-If the dashboard and backend are on different domains (which they are — `dashboard.sanadige.in` vs the Cloud Run URL), and you see CORS errors in the browser console, add the dashboard domain to the backend's allowed origins.
+If the dashboard and backend are on different domains (which they are — `dashboard.sanadige.in` vs `api.sanadige.in`), and you see CORS errors in the browser console, add the dashboard domain to the backend's allowed origins.
 
 In `backend/src/index.ts`, add a CORS middleware before the routes:
 
@@ -364,9 +371,9 @@ npm install cors
 npm install -D @types/cors
 ```
 
-Then redeploy the backend to Cloud Run (see `backend/SETUP.md` for deployment steps).
+Then redeploy: SSH into the EC2 instance, `git pull`, `npm run build`, `pm2 restart sanadige-backend` (see `backend/SETUP.md` for full redeployment steps).
 
-**Note:** The dashboard calls the backend via **Server Actions** (server-to-server), not from the browser, so CORS is not strictly required for the OTP flow. CORS only matters if you ever call the Cloud Run backend directly from browser-side JavaScript.
+**Note:** The dashboard calls the backend via **Server Actions** (server-to-server), not from the browser, so CORS is not strictly required for the OTP flow. CORS only matters if you ever call the EC2 backend directly from browser-side JavaScript.
 
 ---
 
@@ -374,8 +381,8 @@ Then redeploy the backend to Cloud Run (see `backend/SETUP.md` for deployment st
 
 ### OTP is never received on WhatsApp
 
-1. Open `CLOUD_RUN_URL/health` — it should return `{"ok":true}`. If it fails, the backend is down.
-2. Check Cloud Run logs: Google Cloud Console → Cloud Run → sanadige-backend → Logs.
+1. Open `BACKEND_URL/health` — it should return `{"ok":true}`. If it fails, the backend is down.
+2. Check App Runner logs: AWS Console → App Runner → sanadige-backend → **Logs** tab.
 3. Verify the phone number is in the `staff` table in Supabase exactly as entered (including the `+` and country code).
 4. Check the `staff_otps` table in Supabase — you should see a new row appear after submitting the form. If the row appears but no WhatsApp message arrives, the issue is in the backend's WhatsApp integration.
 
@@ -392,7 +399,7 @@ On Vercel production, check the environment variable is set in **Settings → En
 
 The OTP expires after 10 minutes. If more than 10 minutes passed between requesting and entering the code, request a new one.
 
-Also check that the clocks on your Cloud Run instance and Supabase are in sync (they should be — both use UTC by default).
+Also check that the clocks on your EC2 instance and Supabase are in sync (they should be — both use UTC by default).
 
 ### Login redirects back to /login immediately after OTP
 

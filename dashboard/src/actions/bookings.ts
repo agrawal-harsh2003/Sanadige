@@ -1,7 +1,7 @@
 'use server'
 import { revalidatePath } from 'next/cache'
 import { getSupabase } from '@/lib/supabase'
-import { cloudRunPost } from '@/lib/cloud-run'
+import { backendPost } from '@/lib/backend'
 
 function generateRef() {
   return 'SND-' + Math.random().toString(36).substring(2, 8).toUpperCase()
@@ -25,7 +25,7 @@ export async function createBooking(data: {
     status: 'confirmed',
   })
 
-  await cloudRunPost('/bookings/confirm', {
+  await backendPost('/bookings/confirm', {
     phone: data.phone,
     guest_name: data.guest_name,
     booking_ref,

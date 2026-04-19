@@ -37,7 +37,7 @@ Every staff member lands on a different page based on their role:
 | Charts | Recharts |
 | Auth | WhatsApp OTP → HS256 JWT in HTTP-only cookie (12h) |
 | Database | Supabase (service role key, server-side only) |
-| Backend | Cloud Run Express app (OTP send + WhatsApp confirmations) |
+| Backend | AWS EC2 + PM2 + nginx Express app (OTP send + WhatsApp confirmations) |
 | Deploy | Vercel |
 
 ## Project structure
@@ -76,7 +76,7 @@ dashboard/
 │   │   ├── auth.ts                     JWT sign/verify (jose, HS256)
 │   │   ├── supabase.ts                 Server-side Supabase client (service role)
 │   │   ├── supabase-browser.ts         Client-side Supabase client (anon, Realtime)
-│   │   └── cloud-run.ts                Typed fetch wrapper for Cloud Run backend
+│   │   └── backend.ts                  Typed fetch wrapper for App Runner backend
 │   └── middleware.ts                   JWT validation + role-based route protection
 └── vercel.json
 ```
@@ -102,7 +102,7 @@ Open `http://localhost:3000` — redirects to `/login`.
 | `NEXT_PUBLIC_SUPABASE_URL` | Same as `SUPABASE_URL` — sent to browser for Realtime |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key sent to browser for Realtime |
 | `JWT_SECRET` | Random 32+ byte secret for signing session JWTs |
-| `CLOUD_RUN_URL` | Base URL of the Cloud Run backend |
+| `BACKEND_URL` | Base URL of the App Runner backend |
 
 Generate a secure JWT_SECRET:
 ```bash

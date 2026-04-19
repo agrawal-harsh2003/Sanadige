@@ -3,10 +3,10 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 import { signJwt, verifyJwt, type Role, type JwtPayload } from '@/lib/auth'
-import { cloudRunPost } from '@/lib/cloud-run'
+import { backendPost } from '@/lib/backend'
 
 export async function sendOtp(phone: string): Promise<{ ok: boolean }> {
-  await cloudRunPost('/auth/send-otp', { phone })
+  await backendPost('/auth/send-otp', { phone })
   return { ok: true }
 }
 

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getSession } from '@/actions/auth'
 import { Sidebar } from '@/components/shell/Sidebar'
 import { Topbar } from '@/components/shell/Topbar'
+import { AutoRefresh } from '@/components/shell/AutoRefresh'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()
@@ -9,6 +10,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex min-h-screen bg-background">
+      <AutoRefresh />
       <Sidebar role={session.role} />
       <div className="flex-1 flex flex-col">
         <Topbar session={session} />

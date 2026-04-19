@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import express from 'express'
 import { env } from './env'
 import { whatsappRouter } from './webhooks/whatsapp'

@@ -52,7 +52,7 @@ A role-aware internal web dashboard for Sanadige Delhi staff. Deployed at `dashb
 ### Flow
 1. Staff navigates to `dashboard.sanadige.in/login`
 2. Enters their WhatsApp phone number (must exist in the `staff` table)
-3. Dashboard Server Action calls Cloud Run `POST /auth/send-otp` → Cloud Run sends a 6-digit OTP via WhatsApp to that number
+3. Dashboard Server Action calls App Runner `POST /auth/send-otp` → App Runner sends a 6-digit OTP via WhatsApp to that number
 4. OTP stored in Supabase `staff_otps` table with a 10-minute expiry
 5. Staff enters the 6-digit code
 6. Server Action verifies code against `staff_otps`, checks expiry, looks up staff record
@@ -76,7 +76,7 @@ create table staff_otps (
 -- Auto-cleanup: delete used/expired rows via Supabase cron or on each login attempt
 ```
 
-### Cloud Run endpoint: `POST /auth/send-otp`
+### App Runner endpoint: `POST /auth/send-otp`
 New endpoint added to the existing Express backend. Accepts `{ phone }`, generates a 6-digit code, writes to `staff_otps`, sends via WhatsApp.
 
 ---
@@ -169,7 +169,7 @@ Each card represents one `catch_items` row joined with today's `daily_availabili
 - Cancel — updates `status = 'cancelled'`, confirmation dialog first
 - Expand row — shows full booking details including `booking_ref`, phone, WhatsApp link
 
-**New Booking button:** Drawer form — guest name, phone, party size, date/time, floor, special notes. Server Action writes to `bookings` and triggers WhatsApp confirmation message via Cloud Run.
+**New Booking button:** Drawer form — guest name, phone, party size, date/time, floor, special notes. Server Action writes to `bookings` and triggers WhatsApp confirmation message via App Runner.
 
 **Realtime:** New bookings appear live (Supabase subscription).
 
@@ -223,7 +223,7 @@ Each card represents one `catch_items` row joined with today's `daily_availabili
 
 ---
 
-## New Backend Endpoint (Cloud Run)
+## New Backend Endpoint (App Runner)
 
 ### `POST /auth/send-otp`
 Request: `{ phone: string }`
@@ -233,7 +233,7 @@ Request: `{ phone: string }`
 - Sends WhatsApp message: `Your Sanadige dashboard OTP is: 123456. Valid for 10 minutes.`
 - Response: `{ ok: true }` (never reveals whether phone exists — always 200)
 
-### `POST /auth/verify-otp` (handled in Next.js Server Action — not on Cloud Run)
+### `POST /auth/verify-otp` (handled in Next.js Server Action — not on App Runner)
 - Reads `staff_otps` for matching phone + code + not expired + not used
 - Marks used = true
 - Looks up staff record
@@ -310,14 +310,14 @@ dashboard/                          # Next.js 14 app (separate from backend/)
 │   │   ├── supabase.ts             # Server-side Supabase client (service role)
 │   │   ├── supabase-browser.ts     # Client-side Supabase client (anon, for realtime only)
 │   │   ├── auth.ts                 # JWT sign/verify using jose
-│   │   └── cloud-run.ts            # Typed fetch wrapper for Cloud Run API
+│   │   └── backend.ts            # Typed fetch wrapper for App Runner API
 │   ├── actions/
 │   │   ├── auth.ts                 # sendOtp, verifyOtp Server Actions
 │   │   ├── catch.ts                # toggleCatch, updateNote, addCatch Server Actions
 │   │   ├── bookings.ts             # createBooking, updateStatus Server Actions
 │   │   └── staff.ts                # addStaff, updateStaff, removeStaff Server Actions
 │   └── middleware.ts               # JWT validation + route protection
-├── .env.local                      # SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, JWT_SECRET, CLOUD_RUN_URL
+├── .env.local                      # SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, JWT_SECRET, BACKEND_URL
 ├── next.config.ts
 ├── tailwind.config.ts
 └── package.json
@@ -333,7 +333,7 @@ dashboard/                          # Next.js 14 app (separate from backend/)
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-side only — never sent to browser |
 | `SUPABASE_ANON_KEY` | Client-side — for Realtime subscriptions only |
 | `JWT_SECRET` | Random 32-byte secret for signing session JWTs |
-| `CLOUD_RUN_URL` | Base URL of the Cloud Run backend (for OTP send + booking WhatsApp confirm) |
+| `BACKEND_URL` | Base URL of the App Runner backend (for OTP send + booking WhatsApp confirm) |
 
 ---
 

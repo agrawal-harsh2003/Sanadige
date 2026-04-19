@@ -57,7 +57,7 @@ Customer (WhatsApp / Instagram DM)
 | Messaging | Meta WhatsApp Cloud API, Meta Graph API (Instagram) |
 | Scheduling | node-cron |
 | Testing | Vitest |
-| Deploy | Google Cloud Run (Docker, asia-south1) |
+| Deploy | AWS EC2 t2.micro + PM2 + nginx (ap-south-1) |
 
 ---
 
@@ -90,7 +90,7 @@ backend/
 │   └── db/
 │       └── schema.sql                  # Run once in Supabase SQL editor
 ├── tests/                              # Vitest unit tests (29 passing)
-├── Dockerfile                          # Multi-stage build for Cloud Run
+├── Dockerfile                          # Not used for EC2 deploy — kept for reference
 └── .dockerignore
 ```
 
@@ -172,7 +172,7 @@ All variables are validated with Zod on startup. The process exits immediately i
 | MANAGER_PHONE | No | Primary manager WhatsApp number (auto-seeded as manager role) |
 | SWIFTBOOK_API_KEY | No | Leave empty if SwiftBook API is not available |
 | SWIFTBOOK_PROPERTY_ID | No | Leave empty if SwiftBook API is not available |
-| PORT | No | Defaults to 3000 (Cloud Run injects 8080 automatically) |
+| PORT | No | Defaults to 3000 — nginx proxies port 80/443 to this |
 
 ---
 

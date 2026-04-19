@@ -1,10 +1,11 @@
 import { supabase } from '../lib/supabase'
 
+// Maximum simultaneous bookings per floor (one booking = one party/table)
 const FLOOR_CAPACITY: Record<string, number> = {
-  terrace: 6,
-  floor1: 6,
-  floor2: 8,
-  private: 1,
+  terrace: 8,   // 25 seats → ~8 tables
+  floor1: 12,   // 40 seats → ~12 tables
+  floor2: 10,   // 35 seats → ~10 tables
+  private: 1,   // private room → 1 party at a time
 }
 
 export async function checkFloorAvailability(

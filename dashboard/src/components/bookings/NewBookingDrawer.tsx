@@ -4,6 +4,7 @@ import { createBooking } from '@/actions/bookings'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { DateTimePicker } from '@/components/ui/date-time-picker'
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger,
 } from '@/components/ui/drawer'
@@ -21,21 +22,24 @@ const FLOORS = [
 export function NewBookingDrawer() {
   const [open, setOpen] = useState(false)
   const [floor, setFloor] = useState('terrace')
+  const [dateTime, setDateTime] = useState<Date | undefined>(undefined)
   const [, startTransition] = useTransition()
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    if (!dateTime) return
     const fd = new FormData(e.currentTarget)
     startTransition(async () => {
       await createBooking({
         guest_name: fd.get('guest_name') as string,
         phone: fd.get('phone') as string,
         party_size: Number(fd.get('party_size')),
-        datetime: fd.get('datetime') as string,
+        datetime: dateTime.toISOString(),
         floor,
         special_notes: (fd.get('notes') as string) || undefined,
       })
       setOpen(false)
+      setDateTime(undefined)
     })
   }
 
@@ -48,7 +52,6 @@ export function NewBookingDrawer() {
         <DrawerHeader>
           <DrawerTitle>New Booking</DrawerTitle>
         </DrawerHeader>
-        {/* data-vaul-no-drag prevents the drawer swipe gesture from blocking input focus */}
         <div className="overflow-y-auto max-h-[60vh] px-6 pb-6" data-vaul-no-drag>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -65,7 +68,13 @@ export function NewBookingDrawer() {
             </div>
             <div>
               <Label className="font-medium">Date &amp; time</Label>
-              <Input name="datetime" type="datetime-local" required className="mt-1.5" />
+              <div className="mt-1.5">
+                <DateTimePicker
+                  value={dateTime}
+                  onChange={setDateTime}
+                  placeholder="Choose date & time"
+                />
+              </div>
             </div>
             <div>
               <Label className="font-medium">Floor</Label>
@@ -84,7 +93,11 @@ export function NewBookingDrawer() {
               <Label className="font-medium">Special notes</Label>
               <Input name="notes" className="mt-1.5" placeholder="Allergy, occasion, seating preference…" />
             </div>
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-11 mt-2">
+            <Button
+              type="submit"
+              disabled={!dateTime}
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-11 mt-2 disabled:opacity-50"
+            >
               Create Booking
             </Button>
           </form>

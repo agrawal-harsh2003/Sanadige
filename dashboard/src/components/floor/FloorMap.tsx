@@ -37,52 +37,50 @@ const TABLES: TableDef[] = [
 
 type TableStatus = 'available' | 'booked' | 'seated'
 
-const STATUS_COLOR: Record<TableStatus, string> = {
-  available: '#22c55e',
-  booked: '#f59e0b',
-  seated: '#ef4444',
+const STATUS_COLOR: Record<TableStatus, { fill: string; stroke: string; text: string }> = {
+  available: { fill: '#d1fae5', stroke: '#10b981', text: '#065f46' },
+  booked: { fill: '#fef3c7', stroke: '#f59e0b', text: '#92400e' },
+  seated: { fill: '#ffe4e6', stroke: '#f43f5e', text: '#9f1239' },
 }
+
+const SECTION_BG = [
+  { x: 24, y: 24, w: 258, h: 120, label: 'TERRACE' },
+  { x: 284, y: 24, w: 310, h: 120, label: 'FLOOR 1' },
+  { x: 24, y: 180, w: 258, h: 128, label: 'FLOOR 2' },
+  { x: 384, y: 180, w: 160, h: 128, label: 'PRIVATE' },
+]
 
 export function FloorMap({ tableStates }: { tableStates: Record<string, TableStatus> }) {
   return (
-    <div className="bg-surface border border-border rounded-xl p-6">
-      <h2 className="text-sm font-semibold text-[#1a2e1a] mb-4">Floor Map</h2>
-      <div className="flex gap-4 mb-4">
+    <div className="bg-card shadow-sm ring-1 ring-black/5 rounded-2xl p-6">
+      <h2 className="text-base font-semibold text-foreground mb-4">Floor Map</h2>
+      <div className="flex gap-5 mb-5">
         {[
-          { color: '#22c55e', label: 'Available' },
+          { color: '#10b981', label: 'Available' },
           { color: '#f59e0b', label: 'Booked' },
-          { color: '#ef4444', label: 'Seated' },
+          { color: '#f43f5e', label: 'Seated' },
         ].map(l => (
           <div key={l.label} className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-sm" style={{ background: l.color }} />
-            <span className="text-xs text-text-muted">{l.label}</span>
+            <span className="text-xs text-muted-foreground font-medium">{l.label}</span>
           </div>
         ))}
       </div>
       <div className="overflow-x-auto">
         <svg width="620" height="320" className="font-sans">
-          <text x="40" y="26" fill="#9ca3af" fontSize="10" fontWeight="700" letterSpacing="1">TERRACE</text>
-          <text x="300" y="26" fill="#9ca3af" fontSize="10" fontWeight="700" letterSpacing="1">FLOOR 1</text>
-          <text x="40" y="185" fill="#9ca3af" fontSize="10" fontWeight="700" letterSpacing="1">FLOOR 2</text>
-          <text x="400" y="185" fill="#9ca3af" fontSize="10" fontWeight="700" letterSpacing="1">PRIVATE</text>
+          {SECTION_BG.map(s => (
+            <g key={s.label}>
+              <rect x={s.x} y={s.y} width={s.w} height={s.h} rx={10} fill="#f0f9f8" fillOpacity={0.6} stroke="#1C4A5A" strokeOpacity={0.12} strokeWidth={1} />
+              <text x={s.x + 10} y={s.y + 14} fill="#1C4A5A" fontSize="9" fontWeight="700" letterSpacing="1.5" opacity={0.6}>{s.label}</text>
+            </g>
+          ))}
           {TABLES.map(table => {
             const status = tableStates[table.id] ?? 'available'
-            const fill = STATUS_COLOR[status]
+            const c = STATUS_COLOR[status]
             return (
               <g key={table.id}>
-                <rect
-                  x={table.x} y={table.y}
-                  width={table.width} height={table.height}
-                  rx={6}
-                  fill={fill} fillOpacity={0.18}
-                  stroke={fill} strokeWidth={2}
-                />
-                <text
-                  x={table.x + table.width / 2}
-                  y={table.y + table.height / 2 + 4}
-                  textAnchor="middle"
-                  fontSize="11" fontWeight="600" fill={fill}
-                >
+                <rect x={table.x} y={table.y} width={table.width} height={table.height} rx={8} fill={c.fill} stroke={c.stroke} strokeWidth={1.5} />
+                <text x={table.x + table.width / 2} y={table.y + table.height / 2 + 4} textAnchor="middle" fontSize="11" fontWeight="700" fill={c.text}>
                   {table.label}
                 </text>
               </g>
@@ -90,6 +88,7 @@ export function FloorMap({ tableStates }: { tableStates: Record<string, TableSta
           })}
         </svg>
       </div>
+      <p className="text-xs text-muted-foreground mt-2">Showing bookings in the next 2 hours.</p>
     </div>
   )
 }

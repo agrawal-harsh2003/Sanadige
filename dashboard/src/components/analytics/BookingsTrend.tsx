@@ -5,8 +5,8 @@ interface DayData { day: string; count: number }
 
 export function BookingsTrend({ data }: { data: DayData[] }) {
   return (
-    <div className="bg-surface border border-border rounded-xl p-5">
-      <p className="text-sm font-semibold text-[#1a2e1a] mb-4">Bookings Trend</p>
+    <div className="bg-card shadow-sm ring-1 ring-black/5 rounded-2xl p-5">
+      <p className="text-sm font-semibold text-foreground mb-4">Bookings Trend</p>
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e8e3dc" />

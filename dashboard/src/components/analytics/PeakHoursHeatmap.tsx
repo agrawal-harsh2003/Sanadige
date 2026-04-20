@@ -10,17 +10,17 @@ interface HeatmapProps {
 
 export function PeakHoursHeatmap({ data, maxCount }: HeatmapProps) {
   return (
-    <div className="bg-surface border border-border rounded-xl p-5">
-      <p className="text-sm font-semibold text-[#1a2e1a] mb-4">Peak Hours</p>
+    <div className="bg-card shadow-sm ring-1 ring-black/5 rounded-2xl p-5">
+      <p className="text-sm font-semibold text-foreground mb-4">Peak Hours</p>
       <div className="overflow-x-auto">
         <div className="inline-grid gap-[3px]" style={{ gridTemplateColumns: `40px repeat(${HOURS.length}, 36px)` }}>
           <div />
           {HOURS.map(h => (
-            <div key={h} className="text-center text-[10px] text-text-muted">{h}:00</div>
+            <div key={h} className="text-center text-[10px] text-muted-foreground">{h}:00</div>
           ))}
           {DAYS.map(day => (
             <React.Fragment key={day}>
-              <div className="text-[10px] text-text-muted flex items-center">{day}</div>
+              <div className="text-[10px] text-muted-foreground flex items-center">{day}</div>
               {HOURS.map(h => {
                 const count = data[day]?.[h] ?? 0
                 const intensity = maxCount > 0 ? count / maxCount : 0

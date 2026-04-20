@@ -38,9 +38,9 @@ export default async function FloorPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-[#1a2e1a]">Floor Map</h1>
+      <h1 className="text-xl font-bold text-foreground">Floor Map</h1>
       <FloorMap tableStates={tableStates} />
-      <p className="text-xs text-text-muted">Showing bookings in the next 2 hours. Colours: green = available, amber = booked, red = seated.</p>
+      <p className="text-xs text-muted-foreground">Showing bookings in the next 2 hours. Colours: green = available, amber = booked, red = seated.</p>
     </div>
   )
 }

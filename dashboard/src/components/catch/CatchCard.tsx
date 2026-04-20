@@ -1,13 +1,26 @@
 'use client'
 import { useOptimistic, useTransition, useRef } from 'react'
+import { MapPin } from 'lucide-react'
 import { toggleCatch, updateNote } from '@/actions/catch'
 
 type Status = 'available' | 'sold_out' | 'tomorrow'
 
 const STATUS_CONFIG: Record<Status, { label: string; border: string; badge: string }> = {
-  available: { label: 'Available', border: 'border-l-green-500', badge: 'bg-green-100 text-green-800' },
-  sold_out: { label: 'Sold Out', border: 'border-l-red-500', badge: 'bg-red-100 text-red-800' },
-  tomorrow: { label: 'Tomorrow', border: 'border-l-amber-500', badge: 'bg-amber-100 text-amber-800' },
+  available: {
+    label: 'Available',
+    border: 'border-l-emerald-500',
+    badge: 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200',
+  },
+  sold_out: {
+    label: 'Sold Out',
+    border: 'border-l-rose-500',
+    badge: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',
+  },
+  tomorrow: {
+    label: 'Tomorrow',
+    border: 'border-l-amber-500',
+    badge: 'bg-amber-50 text-amber-800 ring-1 ring-amber-200',
+  },
 }
 
 interface CatchCardProps {
@@ -41,22 +54,24 @@ export function CatchCard({ id, name, origin_region, recommended_preps, status, 
   }
 
   return (
-    <div className={`bg-surface border border-border border-l-4 ${config.border} rounded-xl p-4 space-y-3`}>
+    <div className={`bg-card shadow-sm ring-1 ring-black/5 border-l-4 ${config.border} rounded-2xl p-5 space-y-4 hover:shadow-md transition-shadow`}>
       <div className="flex items-start justify-between">
         <div>
-          <p className="font-semibold text-[#1a2e1a]">{name}</p>
-          <p className="text-xs text-text-muted">{origin_region}</p>
+          <p className="font-semibold text-foreground text-base">{name}</p>
+          <p className="text-xs text-muted-foreground italic flex items-center gap-1 mt-0.5">
+            <MapPin size={10} className="inline" />{origin_region}
+          </p>
         </div>
         <button
           onClick={cycleStatus}
-          className={`text-xs font-semibold px-2.5 py-1 rounded-full ${config.badge}`}
+          className={`text-xs font-semibold px-3 py-1 rounded-full transition-opacity hover:opacity-80 ${config.badge}`}
         >
           {config.label}
         </button>
       </div>
-      <div className="flex flex-wrap gap-1">
+      <div className="flex flex-wrap gap-1.5">
         {recommended_preps.map(p => (
-          <span key={p} className="text-xs bg-background px-2 py-0.5 rounded-full border border-border text-[#1a2e1a]">
+          <span key={p} className="text-xs bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full">
             {p}
           </span>
         ))}
@@ -65,8 +80,8 @@ export function CatchCard({ id, name, origin_region, recommended_preps, status, 
         ref={noteRef}
         defaultValue={notes ?? ''}
         onBlur={handleNoteBlur}
-        placeholder="Add a note…"
-        className="w-full text-sm text-[#1a2e1a] bg-background border border-border rounded-lg p-2 resize-none h-16 focus:outline-none focus:ring-1 focus:ring-primary"
+        placeholder="Add a chef's note…"
+        className="w-full text-sm text-foreground bg-muted/50 border border-border rounded-xl p-3 resize-none h-16 focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground/50"
       />
     </div>
   )

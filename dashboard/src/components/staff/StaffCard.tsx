@@ -7,15 +7,21 @@ import {
 } from '@/components/ui/select'
 
 const ROLE_COLORS: Record<string, string> = {
-  manager: 'bg-green-500',
-  chef: 'bg-orange-500',
-  host: 'bg-blue-500',
+  manager: 'bg-accent',
+  chef: 'bg-amber-500',
+  host: 'bg-primary',
 }
 
 const ROLE_BADGE: Record<string, string> = {
-  manager: 'bg-green-100 text-green-800',
-  chef: 'bg-orange-100 text-orange-800',
-  host: 'bg-blue-100 text-blue-800',
+  manager: 'bg-accent/10 text-accent ring-1 ring-accent/20',
+  chef: 'bg-amber-50 text-amber-800 ring-1 ring-amber-200',
+  host: 'bg-primary/10 text-primary ring-1 ring-primary/20',
+}
+
+const ROLE_LABEL: Record<string, string> = {
+  manager: 'Manager',
+  chef: 'Chef',
+  host: 'Host',
 }
 
 interface StaffCardProps {
@@ -45,19 +51,19 @@ export function StaffCard({ id, name, phone, role, created_at, isPrimary }: Staf
   }
 
   return (
-    <div className={`bg-surface border rounded-xl p-5 flex items-center gap-4 ${isPrimary ? 'border-green-300 bg-green-50' : 'border-border'}`}>
-      <div className={`w-12 h-12 rounded-full ${ROLE_COLORS[role] ?? 'bg-gray-400'} flex items-center justify-center flex-shrink-0`}>
+    <div className={`bg-card shadow-sm ring-1 ring-black/5 rounded-2xl p-5 flex items-center gap-4 ${isPrimary ? 'border-l-4 border-accent' : ''}`}>
+      <div className={`w-12 h-12 rounded-full ${ROLE_COLORS[role] ?? 'bg-muted'} flex items-center justify-center flex-shrink-0`}>
         <span className="text-white font-bold text-lg">{name[0]?.toUpperCase()}</span>
       </div>
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <p className="font-semibold text-[#1a2e1a]">{name}</p>
+          <p className="font-semibold text-foreground">{name}</p>
           {isPrimary && (
-            <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-medium">✓ Primary</span>
+            <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full font-medium ring-1 ring-accent/20">✓ Primary</span>
           )}
         </div>
-        <p className="text-sm text-text-muted">{phone}</p>
-        <p className="text-xs text-text-muted mt-0.5">
+        <p className="text-sm text-muted-foreground">{phone}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">
           Added {new Date(created_at).toLocaleDateString('en-IN')}
         </p>
       </div>
@@ -73,8 +79,8 @@ export function StaffCard({ id, name, phone, role, created_at, isPrimary }: Staf
           </Select>
         ) : (
           <>
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${ROLE_BADGE[role] ?? ''}`}>
-              {role}
+            <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${ROLE_BADGE[role] ?? 'bg-muted text-muted-foreground'}`}>
+              {ROLE_LABEL[role] ?? role}
             </span>
             <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>Edit</Button>
             {!isPrimary && (

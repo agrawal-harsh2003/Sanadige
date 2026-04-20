@@ -105,7 +105,7 @@ export async function MissionControl() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-[#1a2e1a]">Mission Control</h1>
+      <h1 className="text-xl font-bold text-foreground">Mission Control</h1>
       <KpiRow data={data.kpi} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <BookingsChart weekData={data.weekData} monthData={data.monthData} />

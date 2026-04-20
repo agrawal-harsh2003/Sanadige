@@ -31,7 +31,7 @@ export default async function CatchPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-[#1a2e1a]">Today's Catch</h1>
+        <h1 className="text-xl font-bold text-foreground">Today's Catch</h1>
         <AddCatchDrawer />
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -41,9 +41,9 @@ export default async function CatchPage() {
           { label: 'Tomorrow', value: tomorrow },
           { label: 'Total Items', value: items.length },
         ].map(m => (
-          <div key={m.label} className="bg-surface border border-border rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-[#1a2e1a]">{m.value}</p>
-            <p className="text-xs text-text-muted mt-1">{m.label}</p>
+          <div key={m.label} className="bg-card shadow-sm ring-1 ring-black/5 rounded-2xl p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{m.value}</p>
+            <p className="text-xs text-muted-foreground mt-1">{m.label}</p>
           </div>
         ))}
       </div>
@@ -52,7 +52,7 @@ export default async function CatchPage() {
           <CatchCard key={item.id} {...item} />
         ))}
         {items.length === 0 && (
-          <p className="text-text-muted col-span-2 text-center py-12">No catch items for today. Add one above.</p>
+          <p className="text-muted-foreground col-span-2 text-center py-12">No catch items for today. Add one above.</p>
         )}
       </div>
     </div>

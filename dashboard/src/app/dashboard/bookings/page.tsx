@@ -32,7 +32,7 @@ export default async function BookingsPage({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-[#1a2e1a]">Bookings</h1>
+        <h1 className="text-xl font-bold text-foreground">Bookings</h1>
         <NewBookingDrawer />
       </div>
       <BookingsTable bookings={bookings ?? []} />

@@ -1,54 +1,82 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { LayoutDashboard, Fish, CalendarDays, Map, Users, BarChart3 } from 'lucide-react'
 import { type Role } from '@/lib/auth'
 
 interface NavItem {
   href: string
   label: string
   roles: Role[]
-  icon: string
+  icon: React.ElementType
 }
 
 const NAV: NavItem[] = [
-  { href: '/dashboard', label: 'Mission Control', roles: ['manager'], icon: '⌂' },
-  { href: '/dashboard/catch', label: "Today's Catch", roles: ['manager', 'chef'], icon: '🐟' },
-  { href: '/dashboard/bookings', label: 'Bookings', roles: ['manager', 'host'], icon: '📋' },
-  { href: '/dashboard/floor', label: 'Floor Map', roles: ['manager', 'host'], icon: '🗺' },
-  { href: '/dashboard/staff', label: 'Staff', roles: ['manager'], icon: '👥' },
-  { href: '/dashboard/analytics', label: 'Analytics', roles: ['manager'], icon: '📊' },
+  { href: '/dashboard', label: 'Mission Control', roles: ['manager'], icon: LayoutDashboard },
+  { href: '/dashboard/catch', label: "Today's Catch", roles: ['manager', 'chef'], icon: Fish },
+  { href: '/dashboard/bookings', label: 'Bookings', roles: ['manager', 'host'], icon: CalendarDays },
+  { href: '/dashboard/floor', label: 'Floor Map', roles: ['manager', 'host'], icon: Map },
+  { href: '/dashboard/staff', label: 'Staff', roles: ['manager'], icon: Users },
+  { href: '/dashboard/analytics', label: 'Analytics', roles: ['manager'], icon: BarChart3 },
 ]
 
-export function Sidebar({ role }: { role: Role }) {
+const ROLE_STYLE: Record<string, string> = {
+  manager: 'bg-accent/20 text-accent-foreground',
+  host: 'bg-sidebar-accent text-sidebar-accent-foreground',
+  chef: 'bg-amber-500/20 text-amber-200',
+}
+
+export function Sidebar({ role, name }: { role: Role; name?: string }) {
   const pathname = usePathname()
   const items = NAV.filter(item => item.roles.includes(role))
 
   return (
-    <aside className="hidden md:flex flex-col w-[220px] min-h-screen bg-surface border-r border-border px-3 py-6">
-      <div className="flex items-center gap-2 px-3 mb-8">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-          <span className="text-white text-sm font-bold">S</span>
-        </div>
-        <span className="font-bold text-[#1a2e1a]">Sanadige</span>
+    <aside className="hidden md:flex flex-col w-[230px] min-h-screen bg-sidebar border-r border-sidebar-border">
+      {/* Brand */}
+      <div className="px-5 py-6 border-b border-sidebar-border">
+        <p className="text-sidebar-foreground font-bold text-xl tracking-tight">Sanadige</p>
+        <p className="text-[11px] text-sidebar-foreground/50 mt-0.5">Where the coast meets Delhi</p>
       </div>
-      <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted px-3 mb-2">Navigation</p>
-      <nav className="flex flex-col gap-1">
+
+      {/* Nav */}
+      <nav className="flex flex-col gap-0.5 px-3 py-4 flex-1">
+        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-sidebar-foreground/40 px-2 mb-2">Navigation</p>
         {items.map(item => {
           const active = pathname === item.href
+          const Icon = item.icon
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                active ? 'bg-primary text-white' : 'text-[#1a2e1a] hover:bg-background'
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                active
+                  ? 'bg-sidebar-accent text-sidebar-accent-foreground border-l-2 border-accent pl-[10px]'
+                  : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
               }`}
             >
-              <span>{item.icon}</span>
+              <Icon size={16} strokeWidth={active ? 2.5 : 1.8} />
               {item.label}
             </Link>
           )
         })}
       </nav>
+
+      {/* Staff pill */}
+      {name && (
+        <div className="px-4 py-4 border-t border-sidebar-border">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+              <span className="text-accent-foreground text-sm font-bold">{name[0]?.toUpperCase()}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sidebar-foreground text-sm font-medium truncate">{name}</p>
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wide ${ROLE_STYLE[role] ?? ''}`}>
+                {role}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   )
 }

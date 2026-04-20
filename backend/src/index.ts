@@ -4,6 +4,7 @@ import { env } from './env'
 import { whatsappRouter } from './webhooks/whatsapp'
 import { instagramRouter } from './webhooks/instagram'
 import { authRouter } from './routes/auth'
+import { bookingsRouter } from './routes/bookings'
 import { startReminderJob } from './services/reminder'
 import { seedManagerFromEnv } from './services/staff'
 
@@ -12,6 +13,7 @@ app.use(express.json())
 
 app.get('/health', (_req, res) => res.json({ ok: true, ts: new Date().toISOString() }))
 app.use('/auth', authRouter)
+app.use('/bookings', bookingsRouter)
 app.use('/webhooks/whatsapp', whatsappRouter)
 app.use('/webhooks/instagram', instagramRouter)
 

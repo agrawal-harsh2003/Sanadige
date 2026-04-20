@@ -75,7 +75,7 @@ export default async function AnalyticsPage() {
   const data = await getAnalyticsData()
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-[#1a2e1a]">Analytics</h1>
+      <h1 className="text-xl font-bold text-foreground">Analytics</h1>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <BookingsTrend data={data.trendData} />
         <FloorDonut data={data.floorData} />

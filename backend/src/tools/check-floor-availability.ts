@@ -48,7 +48,7 @@ export const checkFloorAvailabilityDefinition = {
     properties: {
       floor: { type: 'string', enum: ['terrace', 'floor1', 'floor2', 'private'], description: 'Which floor the guest wants' },
       datetime: { type: 'string', description: 'ISO 8601 datetime the guest wants to book' },
-      party_size: { type: 'number', description: 'Number of guests' },
+      party_size: { type: ['number', 'string'], description: 'Number of guests' },
     },
     required: ['floor', 'datetime', 'party_size'],
   },

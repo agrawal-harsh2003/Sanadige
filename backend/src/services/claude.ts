@@ -57,13 +57,13 @@ async function executeTool(name: string, input: Record<string, unknown>): Promis
     case 'get_today_catch':
       return getTodayCatch()
     case 'check_floor_availability':
-      return checkFloorAvailability(input.floor as string, input.datetime as string, input.party_size as number)
+      return checkFloorAvailability(input.floor as string, input.datetime as string, Number(input.party_size))
     case 'create_booking':
       return createBooking({
         guestName: input.guest_name as string,
         phone: input.phone as string,
         whatsappId: input.whatsapp_id as string,
-        partySize: input.party_size as number,
+        partySize: Number(input.party_size),
         datetime: input.datetime as string,
         floor: input.floor as 'terrace' | 'floor1' | 'floor2' | 'private',
         specialNotes: (input.special_notes as string) ?? null,

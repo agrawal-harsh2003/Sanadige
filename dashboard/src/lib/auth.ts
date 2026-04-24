@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose'
 
-export type Role = 'manager' | 'chef' | 'host'
+export type Role = 'manager' | 'chef' | 'host' | 'waiter'
 
 export interface JwtPayload {
   phone: string

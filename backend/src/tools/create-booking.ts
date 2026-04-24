@@ -52,7 +52,7 @@ export const createBookingDefinition = {
       guest_name: { type: 'string' },
       phone: { type: 'string', description: 'Customer phone number (same as sender)' },
       whatsapp_id: { type: 'string' },
-      party_size: { type: 'number' },
+      party_size: { type: ['number', 'string'] },
       datetime: { type: 'string', description: 'ISO 8601 datetime' },
       floor: { type: 'string', enum: ['terrace', 'floor1', 'floor2', 'private'] },
       special_notes: { type: 'string', nullable: true },

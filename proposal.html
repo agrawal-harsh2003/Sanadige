@@ -1235,64 +1235,203 @@
 
   <!-- Staff WhatsApp Alerts -->
   <div class="mt-32">
-    <div class="wa-flow-title">👨‍🍳 Staff WhatsApp Alerts</div>
-    <div class="two-col" style="margin-top:0;">
+    <div class="wa-flow-title">📲 Automated Staff Alerts — What Each Role Receives</div>
+
+    <!-- 4-column role grid -->
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:16px; margin-top:4px;">
+
+      <!-- Manager -->
       <div>
-        <div style="font-size:13px; color:var(--teal); font-weight:600; margin-bottom:12px;">Host / Floor Manager</div>
+        <div style="font-size:12px; font-weight:700; color:var(--teal); margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+          <span style="background:var(--teal); color:#fff; border-radius:6px; padding:3px 8px; font-size:10px;">👔 MANAGER</span>
+        </div>
         <div class="wa-screen" style="max-width:100%;">
           <div class="wa-topbar" style="background:#1c7a6e;">
-            <div class="wa-avatar">👨‍💼</div>
-            <div><div class="wa-name">Sanadige Ops</div><div class="wa-status">Staff Channel</div></div>
+            <div class="wa-avatar">👔</div>
+            <div><div class="wa-name">Sanadige Ops</div><div class="wa-status">Manager · All Alerts</div></div>
           </div>
-          <div class="wa-body" style="padding:12px; min-height:auto; background:#ece5dd;">
-            <div class="wa-msg from-rest" style="border-left:3px solid var(--terra); padding-left:10px; border-radius:0 8px 8px 0;">
-              📅 <strong>New Booking Alert</strong><br>
+          <div class="wa-body" style="padding:10px; min-height:auto; background:#ece5dd;">
+            <div class="wa-msg from-rest" style="border-left:3px solid #22c55e; padding-left:8px; border-radius:0 6px 6px 0; font-size:11px;">
+              📊 <strong>Evening Briefing</strong><br>
+              32 covers · 118 guests<br>
+              Peak: 8 PM (14 bookings)<br>
+              Terrace: 8 · Floor 1: 12<br>
+              Catch: Anjal, Pomfret 🐟
+              <div class="wa-msg-time">5:00 PM</div>
+            </div>
+            <div class="wa-msg from-rest" style="margin-top:6px; border-left:3px solid var(--terra); padding-left:8px; border-radius:0 6px 6px 0; font-size:11px;">
+              📅 <strong>New Booking</strong><br>
               Priya Sharma · 2 guests<br>
-              Tonight · 8:00 PM · Terrace-2<br>
-              Note: Anniversary dinner<br>
-              <span style="color:#888; font-size:10px;">via WhatsApp Automation</span>
+              8:00 PM · Terrace<br>
+              Added by: Arun (Host)
               <div class="wa-msg-time">2:45 PM</div>
             </div>
-            <div class="wa-msg from-rest" style="margin-top:8px; border-left:3px solid #f59e0b; padding-left:10px; border-radius:0 8px 8px 0;">
+            <div class="wa-msg from-rest" style="margin-top:6px; border-left:3px solid #f59e0b; padding-left:8px; border-radius:0 6px 6px 0; font-size:11px;">
               ⚠️ <strong>Cancellation</strong><br>
-              Rahul Mehta · Floor 1-3<br>
-              7:30 PM slot now free
+              Rahul Mehta · 7:30 PM<br>
+              Floor 1 · Slot now free
               <div class="wa-msg-time">4:12 PM</div>
-            </div>
-            <div class="wa-msg from-rest" style="margin-top:8px; border-left:3px solid #22c55e; padding-left:10px; border-radius:0 8px 8px 0;">
-              📊 <strong>Tonight's Forecast</strong><br>
-              32 covers confirmed<br>
-              Peak: 8–9 PM (14 covers)<br>
-              Terrace fully booked
-              <div class="wa-msg-time">5:00 PM</div>
             </div>
           </div>
         </div>
+        <div style="margin-top:8px; font-size:10px; color:var(--muted); line-height:1.7;">
+          Receives <strong>all alerts</strong>: evening briefing, new bookings, cancellations, staff changes.
+        </div>
       </div>
+
+      <!-- Host -->
       <div>
-        <div style="font-size:13px; color:var(--teal); font-weight:600; margin-bottom:12px;">Kitchen Staff</div>
+        <div style="font-size:12px; font-weight:700; color:var(--teal); margin-bottom:10px;">
+          <span style="background:#2d5c58; color:#fff; border-radius:6px; padding:3px 8px; font-size:10px;">🙋 HOST</span>
+        </div>
+        <div class="wa-screen" style="max-width:100%;">
+          <div class="wa-topbar" style="background:#1c7a6e;">
+            <div class="wa-avatar">🙋</div>
+            <div><div class="wa-name">Sanadige Ops</div><div class="wa-status">Host · Floor Alerts</div></div>
+          </div>
+          <div class="wa-body" style="padding:10px; min-height:auto; background:#ece5dd;">
+            <div class="wa-msg from-rest" style="border-left:3px solid #22c55e; padding-left:8px; border-radius:0 6px 6px 0; font-size:11px;">
+              📊 <strong>Evening Briefing</strong><br>
+              32 covers tonight<br>
+              Peak 8–9 PM · Terrace full<br>
+              Prepare floor by 6:30 PM
+              <div class="wa-msg-time">5:00 PM</div>
+            </div>
+            <div class="wa-msg from-rest" style="margin-top:6px; border-left:3px solid var(--terra); padding-left:8px; border-radius:0 6px 6px 0; font-size:11px;">
+              📅 <strong>New Booking</strong><br>
+              Arjun Kapoor · 4 guests<br>
+              7:00 PM · Floor 1<br>
+              🔖 SND-4AX2
+              <div class="wa-msg-time">3:10 PM</div>
+            </div>
+            <div class="wa-msg from-rest" style="margin-top:6px; border-left:3px solid #f59e0b; padding-left:8px; border-radius:0 6px 6px 0; font-size:11px;">
+              ⚠️ <strong>Cancellation</strong><br>
+              David Lee · 8:30 PM<br>
+              Floor 2 · Slot now free
+              <div class="wa-msg-time">5:50 PM</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:8px; font-size:10px; color:var(--muted); line-height:1.7;">
+          Floor alerts: evening briefing, new bookings, cancellations. Can create bookings via WhatsApp menu.
+        </div>
+      </div>
+
+      <!-- Waiter -->
+      <div>
+        <div style="font-size:12px; font-weight:700; color:var(--teal); margin-bottom:10px;">
+          <span style="background:#16a34a; color:#fff; border-radius:6px; padding:3px 8px; font-size:10px;">🍽️ WAITER</span>
+        </div>
+        <div class="wa-screen" style="max-width:100%;">
+          <div class="wa-topbar" style="background:#1c7a6e;">
+            <div class="wa-avatar">🍽️</div>
+            <div><div class="wa-name">Sanadige Ops</div><div class="wa-status">Waiter · Booking View</div></div>
+          </div>
+          <div class="wa-body" style="padding:10px; min-height:auto; background:#ece5dd;">
+            <div class="wa-msg from-rest" style="border-left:3px solid var(--teal-mid); padding-left:8px; border-radius:0 6px 6px 0; font-size:11px;">
+              👋 <strong>Hi Vikram!</strong><br><br>
+              What would you like to do?
+              <div class="wa-btn-row" style="margin-top:6px;">
+                <div class="wa-btn" style="font-size:11px;">📋 View Bookings</div>
+                <div class="wa-btn" style="font-size:11px;">📖 Help &amp; Guide</div>
+              </div>
+              <div class="wa-msg-time">7:55 PM</div>
+            </div>
+            <div class="wa-msg from-guest" style="font-size:11px;">
+              View Bookings<div class="wa-msg-time">7:55 PM ✓✓</div>
+            </div>
+            <div class="wa-msg from-rest" style="border-left:3px solid var(--teal-mid); padding-left:8px; border-radius:0 6px 6px 0; font-size:11px;">
+              📋 <strong>Tonight (5)</strong><br>
+              🟡 Arjun K. × 4 | 7:00 PM Floor 1<br>
+              🟡 Priya S. × 2 | 8:00 PM Terrace<br>
+              🟢 David L. × 3 | 7:30 PM Floor 2
+              <div class="wa-msg-time">7:56 PM</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:8px; font-size:10px; color:var(--muted); line-height:1.7;">
+          Can view tonight's bookings. Takes and serves orders via the dashboard orders board.
+        </div>
+      </div>
+
+      <!-- Chef -->
+      <div>
+        <div style="font-size:12px; font-weight:700; color:var(--teal); margin-bottom:10px;">
+          <span style="background:#b45309; color:#fff; border-radius:6px; padding:3px 8px; font-size:10px;">👨‍🍳 CHEF</span>
+        </div>
         <div class="wa-screen" style="max-width:100%;">
           <div class="wa-topbar" style="background:#1c7a6e;">
             <div class="wa-avatar">👨‍🍳</div>
-            <div><div class="wa-name">Kitchen Channel</div><div class="wa-status">Staff Channel</div></div>
+            <div><div class="wa-name">Sanadige Ops</div><div class="wa-status">Chef · Catch Updates</div></div>
           </div>
-          <div class="wa-body" style="padding:12px; min-height:auto; background:#ece5dd;">
-            <div class="wa-msg from-rest" style="border-left:3px solid var(--teal-mid); padding-left:10px; border-radius:0 8px 8px 0;">
-              🆕 <strong>New Order — T-3</strong><br>
-              × 1 Anjal Tawa Fry<br>
-              × 2 Crab Butter Garlic<br>
-              × 1 Appam (3 pcs)<br>
-              <span style="color:var(--terra); font-size:11px; font-weight:600;">PENDING · 8:14 PM</span>
-              <div class="wa-msg-time">8:14 PM</div>
+          <div class="wa-body" style="padding:10px; min-height:auto; background:#ece5dd;">
+            <div class="wa-msg from-rest" style="border-left:3px solid #b45309; padding-left:8px; border-radius:0 6px 6px 0; font-size:11px;">
+              👋 <strong>Hi Rajan!</strong><br><br>
+              What would you like to do?
+              <div class="wa-btn-row" style="margin-top:6px;">
+                <div class="wa-btn" style="font-size:11px;">🐟 Update Catch</div>
+                <div class="wa-btn" style="font-size:11px;">📖 Help &amp; Guide</div>
+              </div>
+              <div class="wa-msg-time">10:30 AM</div>
             </div>
-            <div class="wa-msg from-rest" style="margin-top:8px; border-left:3px solid #22c55e; padding-left:10px; border-radius:0 8px 8px 0;">
-              📌 <strong>Upcoming Load</strong><br>
-              3 orders pending, 2 in prep<br>
-              Next booking peak: 8:30 PM
-              <div class="wa-msg-time">8:15 PM</div>
+            <div class="wa-msg from-guest" style="font-size:11px;">
+              Update Catch<div class="wa-msg-time">10:31 AM ✓✓</div>
+            </div>
+            <div class="wa-msg from-rest" style="border-left:3px solid #b45309; padding-left:8px; border-radius:0 6px 6px 0; font-size:11px;">
+              🐟 <strong>Today's Catch</strong><br>
+              Choose a fish to update:
+              <div class="wa-btn-row" style="margin-top:6px;">
+                <div class="wa-btn" style="font-size:11px;">Anjal · Not set</div>
+              </div>
+              <div class="wa-btn-row">
+                <div class="wa-btn" style="font-size:11px;">Pomfret · ✅ Available</div>
+              </div>
+              <div class="wa-msg-time">10:31 AM</div>
             </div>
           </div>
         </div>
+        <div style="margin-top:8px; font-size:10px; color:var(--muted); line-height:1.7;">
+          Updates fish availability from WhatsApp. Changes reflect instantly on the menu and dashboard.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Automated reminder timeline -->
+    <div style="margin-top:40px; background:var(--teal); border-radius:12px; padding:28px; color:#fff;">
+      <div style="font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.5); margin-bottom:20px;">⏱️ Automated Message Timeline — A Guest's Full Journey</div>
+      <div style="display:flex; align-items:flex-start; gap:0; overflow-x:auto; padding-bottom:8px;">
+
+        <div style="min-width:140px; padding-right:16px; border-right:1px solid rgba(255,255,255,0.15); margin-right:16px;">
+          <div style="font-size:10px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Guest books</div>
+          <div style="font-size:12px; font-weight:600; color:#fff;">Instant</div>
+          <div style="font-size:11px; color:rgba(255,255,255,0.6); margin-top:4px; line-height:1.6;">✅ Booking confirmation template sent to guest<br>📅 New booking alert → Manager + Host</div>
+        </div>
+
+        <div style="min-width:140px; padding-right:16px; border-right:1px solid rgba(255,255,255,0.15); margin-right:16px;">
+          <div style="font-size:10px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">5:00 PM IST</div>
+          <div style="font-size:12px; font-weight:600; color:#fff;">Daily Briefing</div>
+          <div style="font-size:11px; color:rgba(255,255,255,0.6); margin-top:4px; line-height:1.6;">📊 Evening forecast → Manager + Host<br>Tonight's covers, peak hour, catch summary</div>
+        </div>
+
+        <div style="min-width:140px; padding-right:16px; border-right:1px solid rgba(255,255,255,0.15); margin-right:16px;">
+          <div style="font-size:10px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">2 hrs before</div>
+          <div style="font-size:12px; font-weight:600; color:#fff;">Reminder</div>
+          <div style="font-size:11px; color:rgba(255,255,255,0.6); margin-top:4px; line-height:1.6;">🌊 Guest reminder with tonight's catch<br>Options to confirm, change or cancel</div>
+        </div>
+
+        <div style="min-width:140px; padding-right:16px; border-right:1px solid rgba(255,255,255,0.15); margin-right:16px;">
+          <div style="font-size:10px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Guest cancels</div>
+          <div style="font-size:12px; font-weight:600; color:#fff;">Instant Alert</div>
+          <div style="font-size:11px; color:rgba(255,255,255,0.6); margin-top:4px; line-height:1.6;">⚠️ Cancellation alert → Manager + Host<br>Slot marked free immediately</div>
+        </div>
+
+        <div style="min-width:140px;">
+          <div style="font-size:10px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">90 min after meal</div>
+          <div style="font-size:12px; font-weight:600; color:#fff;">Feedback</div>
+          <div style="font-size:11px; color:rgba(255,255,255,0.6); margin-top:4px; line-height:1.6;">🙏 Feedback request → Guest<br>Capture experience while memory is fresh</div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -1317,8 +1456,97 @@
 
   <div class="divider"></div>
 
+  <!-- Role Access Grid -->
+  <div class="wa-flow-title">🔐 Role-Based Access — Who Sees What</div>
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; margin-bottom:40px;">
+
+    <div style="background:var(--teal); border-radius:10px; padding:18px; color:#fff;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+        <span style="font-size:20px;">👔</span>
+        <div>
+          <div style="font-size:13px; font-weight:700;">Manager</div>
+          <div style="font-size:10px; color:rgba(255,255,255,0.5);">Full access</div>
+        </div>
+      </div>
+      <div style="font-size:11px; color:rgba(255,255,255,0.75); line-height:2;">
+        ✅ Mission Control<br>
+        ✅ Today's Catch<br>
+        ✅ Bookings<br>
+        ✅ Floor Map<br>
+        ✅ Orders Board<br>
+        ✅ Staff Management<br>
+        ✅ Analytics
+      </div>
+    </div>
+
+    <div style="background:var(--teal-light); border-radius:10px; padding:18px; border:1px solid var(--sand-dark);">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+        <span style="font-size:20px;">🙋</span>
+        <div>
+          <div style="font-size:13px; font-weight:700; color:var(--teal);">Host</div>
+          <div style="font-size:10px; color:var(--muted);">Floor & bookings</div>
+        </div>
+      </div>
+      <div style="font-size:11px; color:#4a6664; line-height:2;">
+        ❌ Mission Control<br>
+        ❌ Today's Catch<br>
+        ✅ Bookings<br>
+        ✅ Floor Map<br>
+        ✅ Orders Board<br>
+        ❌ Staff Management<br>
+        ❌ Analytics
+      </div>
+    </div>
+
+    <div style="background:#f0fdf4; border-radius:10px; padding:18px; border:1px solid #bbf7d0;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+        <span style="font-size:20px;">🍽️</span>
+        <div>
+          <div style="font-size:13px; font-weight:700; color:#166534;">Waiter</div>
+          <div style="font-size:10px; color:#4ade80;">Orders & bookings</div>
+        </div>
+      </div>
+      <div style="font-size:11px; color:#166534; line-height:2;">
+        ❌ Mission Control<br>
+        ❌ Today's Catch<br>
+        ✅ Bookings (view)<br>
+        ✅ Floor Map<br>
+        ✅ Orders Board<br>
+        ❌ Staff Management<br>
+        ❌ Analytics
+      </div>
+    </div>
+
+    <div style="background:#fffbeb; border-radius:10px; padding:18px; border:1px solid #fde68a;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+        <span style="font-size:20px;">👨‍🍳</span>
+        <div>
+          <div style="font-size:13px; font-weight:700; color:#92400e;">Chef</div>
+          <div style="font-size:10px; color:#f59e0b;">Kitchen & catch</div>
+        </div>
+      </div>
+      <div style="font-size:11px; color:#78350f; line-height:2;">
+        ❌ Mission Control<br>
+        ✅ Today's Catch<br>
+        ❌ Bookings<br>
+        ❌ Floor Map<br>
+        ✅ Orders Board<br>
+        ❌ Staff Management<br>
+        ❌ Analytics
+      </div>
+    </div>
+
+  </div>
+
+  <div style="background:var(--sand); border-radius:10px; padding:16px 20px; margin-bottom:40px; display:flex; align-items:flex-start; gap:12px;">
+    <div style="font-size:20px; flex-shrink:0;">🔑</div>
+    <div style="font-size:13px; color:var(--muted); line-height:1.8;">
+      Login is via <strong style="color:var(--teal);">OTP on WhatsApp</strong> — no passwords to remember or reset. Staff type their phone number on the dashboard, receive a one-time code in WhatsApp, and are in. Sessions last 12 hours. Only registered staff can log in.
+    </div>
+  </div>
+
   <!-- Main Dashboard Mockup -->
-  <div class="wa-flow-title">📺 Dashboard Overview — Home Screen</div>
+  <div class="wa-flow-title">📺 Dashboard Overview — Manager View (Mission Control)</div>
   <div class="dashboard-mockup">
     <div class="db-topbar">
       <div class="db-logo">SANADIGE</div>

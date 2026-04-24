@@ -73,7 +73,7 @@ describe('handleStaffCommand', () => {
   })
 
   it('rejects unknown role', async () => {
-    const result = await handleStaffCommand('/staff add 919876543210 waiter Rajesh', '919999999999')
+    const result = await handleStaffCommand('/staff add 919876543210 bartender Rajesh', '919999999999')
     expect(result).toContain('Role must be one of')
   })
 

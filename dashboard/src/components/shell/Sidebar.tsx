@@ -14,8 +14,8 @@ interface NavItem {
 const NAV: NavItem[] = [
   { href: '/dashboard', label: 'Mission Control', roles: ['manager'], icon: LayoutDashboard },
   { href: '/dashboard/catch', label: "Today's Catch", roles: ['manager', 'chef'], icon: Fish },
-  { href: '/dashboard/bookings', label: 'Bookings', roles: ['manager', 'host'], icon: CalendarDays },
-  { href: '/dashboard/floor', label: 'Floor Map', roles: ['manager', 'host'], icon: Map },
+  { href: '/dashboard/bookings', label: 'Bookings', roles: ['manager', 'host', 'waiter'], icon: CalendarDays },
+  { href: '/dashboard/floor', label: 'Floor Map', roles: ['manager', 'host', 'waiter'], icon: Map },
   { href: '/dashboard/staff', label: 'Staff', roles: ['manager'], icon: Users },
   { href: '/dashboard/analytics', label: 'Analytics', roles: ['manager'], icon: BarChart3 },
 ]
@@ -24,6 +24,7 @@ const ROLE_STYLE: Record<string, string> = {
   manager: 'bg-accent/20 text-accent-foreground',
   host: 'bg-sidebar-accent text-sidebar-accent-foreground',
   chef: 'bg-amber-500/20 text-amber-200',
+  waiter: 'bg-emerald-500/20 text-emerald-300',
 }
 
 export function Sidebar({ role, name }: { role: Role; name?: string }) {

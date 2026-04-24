@@ -7,5 +7,6 @@ export default async function DashboardPage() {
   if (!session) redirect('/login')
   if (session.role === 'chef') redirect('/dashboard/catch')
   if (session.role === 'host') redirect('/dashboard/bookings')
+  if (session.role === 'waiter') redirect('/dashboard/bookings')
   return <MissionControl />
 }

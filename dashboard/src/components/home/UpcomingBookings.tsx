@@ -1,5 +1,15 @@
 import Link from 'next/link'
 
+function formatIST(datetime: string) {
+  const d = new Date(datetime)
+  const ist = new Date(d.getTime() + 5.5 * 60 * 60 * 1000)
+  const h = ist.getUTCHours()
+  const m = ist.getUTCMinutes()
+  const period = h >= 12 ? 'PM' : 'AM'
+  const hour = h % 12 || 12
+  return `${hour.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${period}`
+}
+
 const FLOOR_LABEL: Record<string, string> = {
   terrace: 'Terrace', floor1: 'Floor 1', floor2: 'Floor 2', private: 'Private',
 }
@@ -31,7 +41,7 @@ export function UpcomingBookings({ bookings }: { bookings: Booking[] }) {
           <div key={b.id} className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-sm font-semibold text-primary w-16">
-                {new Date(b.datetime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                {formatIST(b.datetime)}
               </span>
               <span className="text-sm font-medium text-foreground">{b.guest_name}</span>
               <span className="text-xs text-muted-foreground">×{b.party_size}</span>

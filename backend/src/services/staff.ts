@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase'
 import { env } from '../env'
 
-export type StaffRole = 'chef' | 'host' | 'manager'
+export type StaffRole = 'chef' | 'host' | 'manager' | 'waiter'
 
 export interface StaffMember {
   phone: string
@@ -62,8 +62,8 @@ export async function handleStaffCommand(text: string, senderPhone: string): Pro
     if (!phone || !role || !name) {
       return 'Usage: /staff add <phone> <chef|host|manager> <name>\nExample: /staff add 919876543210 chef Rajesh'
     }
-    if (!['chef', 'host', 'manager'].includes(role)) {
-      return 'Role must be one of: chef, host, manager'
+    if (!['chef', 'host', 'manager', 'waiter'].includes(role)) {
+      return 'Role must be one of: chef, host, manager, waiter'
     }
 
     const { error } = await supabase

@@ -1,6 +1,7 @@
 import { getSupabase } from '@/lib/supabase'
 import { BookingsTable } from '@/components/bookings/BookingsTable'
 import { NewBookingDrawer } from '@/components/bookings/NewBookingDrawer'
+import { DateNav } from '@/components/bookings/DateNav'
 
 export default async function BookingsPage({
   searchParams,
@@ -9,9 +10,14 @@ export default async function BookingsPage({
 }) {
   const params = await searchParams
   const supabase = getSupabase()
-  const date = params.date ?? new Date().toISOString().split('T')[0]
-  const start = `${date}T00:00:00`
-  const end = `${date}T23:59:59`
+  // Default to IST today (UTC+5:30)
+  const istNow = new Date(Date.now() + 5.5 * 60 * 60 * 1000)
+  const date = params.date ?? istNow.toISOString().split('T')[0]
+  // Query IST midnight boundaries in UTC
+  const startUTC = new Date(`${date}T00:00:00+05:30`).toISOString()
+  const endUTC = new Date(`${date}T23:59:59+05:30`).toISOString()
+  const start = startUTC
+  const end = endUTC
 
   let query = supabase
     .from('bookings')
@@ -33,7 +39,10 @@ export default async function BookingsPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground">Bookings</h1>
-        <NewBookingDrawer />
+        <div className="flex items-center gap-3">
+          <DateNav date={date} />
+          <NewBookingDrawer />
+        </div>
       </div>
       <BookingsTable bookings={bookings ?? []} />
     </div>

@@ -3,6 +3,7 @@ import { IncomingMessage } from '../webhooks/normalise'
 import { sendWhatsAppMessage, sendButtons, sendList, sendBookingConfirmationTemplate } from '../lib/whatsapp'
 import { supabase } from '../lib/supabase'
 import { env } from '../env'
+import { notifyStaffOfBooking } from './reminder'
 
 // ── Session ───────────────────────────────────────────────────────────────────
 
@@ -119,6 +120,13 @@ async function showMainMenu(to: string, staff: StaffMember): Promise<void> {
     ])
   }
 
+  if (staff.role === 'waiter') {
+    return sendButtons(to, `${greet}\n\nWhat would you like to do?`, [
+      { id: 'main_bookings', title: 'View Bookings' },
+      { id: 'main_help', title: 'Help & Guide' },
+    ])
+  }
+
   // manager — list message fits more options
   return sendList(to, `${greet}\n\nWhat would you like to do?`, 'Open Menu', [
     {
@@ -153,6 +161,7 @@ async function handleIdle(msg: IncomingMessage, id: string, staff: StaffMember):
 
 async function showHelp(to: string, staff: StaffMember): Promise<void> {
   const guide: Record<string, string> = {
+    waiter: `📖 *Waiter Guide*\n\n*View bookings:*\nTap "View Bookings" → "View Today" to see tonight's reservations — guest name, table, party size, and time.\n\n*Taking an order:*\nUse the QR menu orders board on the dashboard to see incoming orders and update their status.\n\n*Status colours (dashboard):*\n🟡 Confirmed — guest not yet arrived\n🟢 Seated — guest is at the table\n\n*Dashboard:* dashboard.sanadige.in\n\nType *menu* anytime to come back here.`,
     chef: `📖 *Chef Guide*\n\n*Update today's catch:*\nTap "Update Catch" → choose a fish from the list → choose its status:\n✅ Available — in stock today\n❌ Sold Out — ran out\n🔜 Tomorrow — arriving tomorrow\n\nYou can update the same fish multiple times a day.\n\n*Dashboard:* dashboard.sanadige.in\n\nType *menu* anytime to come back here.`,
     host: `📖 *Host Guide*\n\n*View bookings:*\nTap "Bookings" → "View Today" to see all bookings.\n\n*Create a booking:*\nTap "Bookings" → "New Booking" and follow the steps — guest name, phone, party size, date, time, and area.\n\n*Status colours (dashboard):*\n🟡 Confirmed — not yet arrived\n🟢 Seated — guest is at the table\n🔴 Cancelled\n\n*Dashboard:* dashboard.sanadige.in (full floor map + booking management)\n\nType *menu* anytime to come back here.`,
     manager: `📖 *Manager Guide*\n\n*Today's Catch:* Mark fish available, sold out, or arriving tomorrow.\n\n*Bookings:* View today's bookings or create a new one step by step.\n\n*Staff:*\n• Add Staff — pick a role, enter name + number. They'll get an automatic welcome message.\n• Remove Staff — choose from the team list and confirm.\n• View Staff — full team roster.\n\n*Dashboard:* dashboard.sanadige.in — Mission Control, analytics, floor map, full management UI.\n\nType *menu* anytime to come back here.`,
@@ -277,7 +286,7 @@ async function showStaffView(to: string, staff: StaffMember): Promise<void> {
   if (!data || data.length === 0) {
     await sendWhatsAppMessage(to, 'No staff registered yet.')
   } else {
-    const icon: Record<string, string> = { manager: '👔', chef: '👨‍🍳', host: '🙋' }
+    const icon: Record<string, string> = { manager: '👔', chef: '👨‍🍳', host: '🙋', waiter: '🍽️' }
     const lines = data.map(s => `${icon[s.role] ?? '•'} *${s.name}* (${s.role})\n   ${s.phone}`)
     await sendWhatsAppMessage(to, `👥 *Team (${data.length})*\n\n${lines.join('\n\n')}`)
   }
@@ -291,17 +300,21 @@ async function showStaffView(to: string, staff: StaffMember): Promise<void> {
 // Add — step 1: role
 async function startAddStaff(to: string): Promise<void> {
   advance(to, 'staff_add_role')
-  return sendButtons(to, '➕ *Add Staff*\n\nWhat role will this person have?', [
-    { id: 'role_chef', title: 'Chef' },
-    { id: 'role_host', title: 'Host' },
-    { id: 'role_manager', title: 'Manager' },
-  ])
+  return sendList(to, '➕ *Add Staff*\n\nWhat role will this person have?', 'Choose Role', [{
+    title: 'Roles',
+    rows: [
+      { id: 'role_chef', title: 'Chef', description: 'Updates catch availability' },
+      { id: 'role_host', title: 'Host', description: 'Manages bookings & floor' },
+      { id: 'role_waiter', title: 'Waiter', description: 'Takes orders, views bookings' },
+      { id: 'role_manager', title: 'Manager', description: 'Full access' },
+    ],
+  }])
 }
 
 async function handleAddRole(
   msg: IncomingMessage, id: string, _session: Session, _staff: StaffMember
 ): Promise<void> {
-  const roles: Record<string, string> = { role_chef: 'chef', role_host: 'host', role_manager: 'manager' }
+  const roles: Record<string, string> = { role_chef: 'chef', role_host: 'host', role_manager: 'manager', role_waiter: 'waiter' }
   const role = roles[id]
   if (!role) return startAddStaff(msg.senderId)
 
@@ -351,6 +364,7 @@ async function handleAddPhone(msg: IncomingMessage, session: Session, staff: Sta
   const welcome: Record<string, string> = {
     chef: `👋 Hi ${newName}! Welcome to *Sanadige Delhi*.\n\nYou've been added as *Chef* 👨‍🍳\n\n*What you can do here:*\nUpdate today's catch availability directly from WhatsApp — no app needed.\n\n*How it works:*\nJust type *menu* to open your panel. You'll see a list of fish and can mark each one as available, sold out, or arriving tomorrow — all with buttons.\n\n*Dashboard (web):* dashboard.sanadige.in\nAsk your manager for login help if needed.\n\nType *menu* to get started! 🐟`,
     host: `👋 Hi ${newName}! Welcome to *Sanadige Delhi*.\n\nYou've been added as *Host* 🙋\n\n*What you can do here:*\n• View today's bookings\n• Create new bookings step by step\n\nType *menu* to open your panel.\n\n*Dashboard (web):* dashboard.sanadige.in — full booking management, floor map, and more.\n\nType *menu* to get started!`,
+    waiter: `👋 Hi ${newName}! Welcome to *Sanadige Delhi*.\n\nYou've been added as *Waiter* 🍽️\n\n*What you can do here:*\n• View tonight's reservations by table\n• Check incoming QR menu orders on the dashboard\n\nType *menu* to open your panel.\n\n*Dashboard (web):* dashboard.sanadige.in\n\nType *menu* to get started!`,
     manager: `👋 Hi ${newName}! Welcome to *Sanadige Delhi*.\n\nYou've been added as *Manager* 👔\n\n*You have full access:*\n🐟 Update today's catch\n📋 View and create bookings\n👥 Add, remove, and view staff\n\nType *menu* to open your panel.\n\n*Dashboard (web):* dashboard.sanadige.in — Mission Control, analytics, floor map, and everything else.\n\nType *menu* to get started!`,
   }
   // Fire and forget — new staff may not have messaged the bot yet (WhatsApp 24h window)
@@ -730,6 +744,17 @@ async function handleBookConfirm(
     floor: floorLabel(bkFloor),
     ref: bookingRef,
   }).catch(err => console.warn('[staff-menu] Guest confirmation failed:', err?.message ?? err))
+
+  // Notify other managers/hosts of the new booking
+  notifyStaffOfBooking({
+    guestName: bkName,
+    partySize: bkParty,
+    date: dispDate,
+    time: dispTime,
+    floor: bkFloor,
+    ref: bookingRef,
+    createdBy: staff.name,
+  }).catch(() => {})
 
   reset(msg.senderId)
   return sendButtons(msg.senderId, 'What next?', [

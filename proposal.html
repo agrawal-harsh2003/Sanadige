@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sanadige Digital Experience — Proposal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --teal:       #1a3a38;
+    --teal-mid:   #2d5c58;
+    --teal-light: #e8f0ef;
+    --terra:      #c4683a;
+    --terra-light:#fdf0e8;
+    --sand:       #f8f3ec;
+    --sand-dark:  #ede7dd;
+    --white:      #ffffff;
+    --muted:      #8a7f75;
+    --text:       #2c2925;
+    --gold:       #c9a84c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #fff;
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ─── COVER ─────────────────────────────────── */
+  .cover {
+    background: var(--teal);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 60px 80px;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -80px;
+    width: 340px; height: 340px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .cover-lamp {
+    font-size: 48px;
+    margin-bottom: 8px;
+  }
+  .cover-wordmark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 64px;
+    font-weight: 300;
+    color: #fff;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .cover-tagline {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 12px;
+  }
+  .cover-divider {
+    width: 60px;
+    height: 1px;
+    background: var(--terra);
+    margin: 40px 0;
+  }
+  .cover-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 44px;
+    font-weight: 400;
+    color: #fff;
+    line-height: 1.2;
+    max-width: 600px;
+  }
+  .cover-subtitle {
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 16px;
+    max-width: 500px;
+    line-height: 1.7;
+  }
+  .cover-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .cover-meta {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 1px;
+  }
+  .cover-badge {
+    background: var(--terra);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 8px 20px;
+    border-radius: 2px;
+  }
+
+  /* ─── PAGE LAYOUT ─────────────────────────────── */
+  .page {
+    padding: 80px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .page + .page { border-top: 1px solid var(--sand-dark); }
+
+  /* ─── SECTION HEADERS ─────────────────────────── */
+  .section-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--terra);
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 42px;
+    font-weight: 400;
+    color: var(--teal);
+    line-height: 1.15;
+    margin-bottom: 20px;
+  }
+  .section-body {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.8;
+    max-width: 680px;
+  }
+  .divider {
+    width: 48px;
+    height: 2px;
+    background: var(--terra);
+    margin: 28px 0;
+  }
+
+  /* ─── TWO-COL ──────────────────────────────────── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    margin-top: 48px;
+  }
+  .three-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 32px;
+    margin-top: 40px;
+  }
+
+  /* ─── STAT CARDS ────────────────────────────────── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 40px;
+  }
+  .stat-card {
+    background: var(--sand);
+    border-radius: 12px;
+    padding: 24px;
+    border-left: 3px solid var(--terra);
+  }
+  .stat-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 500;
+    color: var(--teal);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 6px;
+  }
+
+  /* ─── PROBLEM CARDS ─────────────────────────────── */
+  .problem-card {
+    background: #fff;
+    border: 1px solid var(--sand-dark);
+    border-radius: 12px;
+    padding: 28px;
+    border-top: 3px solid #e55;
+  }
+  .problem-icon { font-size: 28px; margin-bottom: 12px; }
+  .problem-title { font-weight: 600; color: var(--text); margin-bottom: 8px; font-size: 15px; }
+  .problem-desc { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .problem-quote {
+    background: #fff8f8;
+    border-left: 3px solid #e55;
+    padding: 10px 14px;
+    margin-top: 12px;
+    font-size: 12px;
+    color: #c44;
+    font-style: italic;
+    border-radius: 0 6px 6px 0;
+  }
+
+  /* ─── SOLUTION CARDS ────────────────────────────── */
+  .solution-card {
+    background: var(--teal-light);
+    border-radius: 12px;
+    padding: 28px;
+    border-top: 3px solid var(--teal-mid);
+  }
+  .solution-num {
+    width: 32px; height: 32px;
+    background: var(--teal);
+    color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .solution-title { font-weight: 600; color: var(--teal); margin-bottom: 8px; font-size: 15px; }
+  .solution-desc { font-size: 13px; color: #4a6664; line-height: 1.7; }
+
+  /* ─── FEATURE SECTION ───────────────────────────── */
+  .feature-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .feature-icon-circle {
+    width: 56px; height: 56px;
+    background: var(--teal);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+  .feature-tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--terra);
+  }
+  .feature-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--teal);
+    line-height: 1.2;
+  }
+
+  /* ─── WHATSAPP FLOW ─────────────────────────────── */
+  .wa-flow {
+    margin-top: 32px;
+  }
+  .wa-flow-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  .wa-screen {
+    background: #e5ddd5;
+    border-radius: 16px;
+    overflow: hidden;
+    max-width: 320px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  }
+  .wa-topbar {
+    background: #075e54;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .wa-avatar {
+    width: 36px; height: 36px;
+    background: #128c7e;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .wa-name { color: #fff; font-size: 14px; font-weight: 600; }
+  .wa-status { color: rgba(255,255,255,0.7); font-size: 11px; }
+  .wa-body { padding: 12px; min-height: 320px; }
+  .wa-msg {
+    max-width: 85%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    position: relative;
+  }
+  .wa-msg.from-rest {
+    background: #fff;
+    border-radius: 0 8px 8px 8px;
+    margin-right: auto;
+  }
+  .wa-msg.from-guest {
+    background: #dcf8c6;
+    border-radius: 8px 0 8px 8px;
+    margin-left: auto;
+  }
+  .wa-msg-time { font-size: 10px; color: #aaa; text-align: right; margin-top: 2px; }
+  .wa-btn-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .wa-btn {
+    background: #fff;
+    border: 1px solid #25d366;
+    color: #128c7e;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+  }
+  .wa-section-label {
+    font-size: 10px;
+    color: #888;
+    text-align: center;
+    margin: 10px 0 6px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--teal-mid);
+    padding: 0 16px;
+  }
+  .flow-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 16px;
+  }
+  .flow-step {
+    flex-shrink: 0;
+    max-width: 200px;
+  }
+  .flow-step-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--teal);
+    text-align: center;
+    margin-top: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* ─── DASHBOARD MOCKUP ──────────────────────────── */
+  .dashboard-mockup {
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.12);
+    margin-top: 32px;
+  }
+  .db-topbar {
+    background: var(--teal);
+    border-radius: 8px 8px 0 0;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .db-logo {
+    font-family: 'Cormorant Garamond', serif;
+    color: #fff;
+    font-size: 18px;
+    letter-spacing: 4px;
+  }
+  .db-nav {
+    display: flex;
+    gap: 20px;
+  }
+  .db-nav-item {
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+  }
+  .db-nav-item.active { color: #fff; font-weight: 600; }
+  .db-body {
+    background: var(--sand);
+    border-radius: 0 0 8px 8px;
+    padding: 20px;
+  }
+  .db-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .db-page-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--teal);
+  }
+  .db-btn {
+    background: var(--teal);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 8px;
+    letter-spacing: 0.5px;
+  }
+  .db-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .db-kpi {
+    background: #fff;
+    border-radius: 10px;
+    padding: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .db-kpi-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .db-kpi-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    color: var(--teal);
+    font-weight: 500;
+    line-height: 1.1;
+    margin-top: 4px;
+  }
+  .db-kpi-sub { font-size: 10px; color: #22c55e; margin-top: 2px; }
+  .db-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 12px;
+  }
+  .db-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .db-card-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--teal);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+  .db-booking-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 11px;
+  }
+  .db-booking-row:last-child { border-bottom: none; }
+  .db-time { color: var(--teal); font-weight: 600; width: 60px; }
+  .db-guest { color: var(--text); flex: 1; }
+  .db-floor-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+  .floor-terrace { background: #fef3c7; color: #92400e; }
+  .floor-floor1  { background: var(--teal-light); color: var(--teal); }
+  .floor-floor2  { background: #d1fae5; color: #065f46; }
+  .floor-private { background: #ffe4e6; color: #9f1239; }
+
+  /* ─── ORDERS SWIMLANE MOCKUP ─────────────────────── */
+  .swimlane-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .swimlane-col {
+    background: var(--sand);
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .swimlane-header {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .sl-pending { background: #fef3c7; color: #92400e; }
+  .sl-ack     { background: var(--teal-light); color: var(--teal); }
+  .sl-served  { background: #d1fae5; color: #065f46; }
+  .order-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border-left: 3px solid var(--teal);
+  }
+  .order-table {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--teal);
+  }
+  .order-items { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  .order-time  { font-size: 10px; color: #aaa; margin-top: 4px; }
+  .order-action {
+    font-size: 10px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--teal);
+    border-radius: 4px;
+    padding: 3px 8px;
+    margin-top: 8px;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .order-action.green { background: #16a34a; }
+
+  /* ─── MENU PWA MOCKUP ───────────────────────────── */
+  .phone-frame {
+    width: 240px;
+    background: #fff;
+    border-radius: 28px;
+    box-shadow: 0 16px 64px rgba(0,0,0,0.18);
+    overflow: hidden;
+    border: 4px solid #1a1a1a;
+    flex-shrink: 0;
+  }
+  .phone-notch {
+    background: #1a1a1a;
+    height: 20px;
+    border-radius: 0 0 16px 16px;
+    width: 80px;
+    margin: 0 auto;
+    margin-top: -1px;
+  }
+  .phone-content { padding: 8px 0; }
+  .pwa-topbar {
+    background: var(--teal);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pwa-logo {
+    font-family: 'Cormorant Garamond', serif;
+    color: #fff;
+    font-size: 18px;
+    letter-spacing: 3px;
+  }
+  .pwa-table { font-size: 10px; color: rgba(255,255,255,0.6); }
+  .catch-strip-title {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 14px 4px;
+  }
+  .catch-strip {
+    display: flex;
+    gap: 8px;
+    padding: 0 14px 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .catch-card {
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid var(--sand-dark);
+    border-top: 2px solid var(--teal-mid);
+    padding: 8px;
+    min-width: 90px;
+    flex-shrink: 0;
+  }
+  .catch-fish { font-size: 9px; font-weight: 600; color: var(--teal); }
+  .catch-local { font-size: 8px; color: var(--muted); }
+  .live-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 7px;
+    color: #16a34a;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .live-dot::before {
+    content: '';
+    width: 5px; height: 5px;
+    background: #16a34a;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .pwa-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--sand-dark);
+    padding: 0 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .pwa-tab {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--muted);
+    padding: 6px 8px;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+  .pwa-tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+  .dish-card {
+    margin: 8px 14px;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid var(--sand-dark);
+    overflow: hidden;
+  }
+  .dish-img {
+    width: 100%;
+    height: 60px;
+    background: linear-gradient(135deg, #c4a882, #8a6a4a);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .dish-info { padding: 8px; }
+  .dish-name { font-size: 11px; font-weight: 600; color: var(--teal); }
+  .dish-desc { font-size: 9px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .dish-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 6px;
+  }
+  .dish-price { font-size: 11px; font-weight: 600; color: var(--teal); }
+  .dish-add {
+    font-size: 9px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--teal);
+    border-radius: 5px;
+    padding: 3px 8px;
+  }
+  .spice-dots { display: flex; gap: 2px; margin-top: 3px; }
+  .dot { width: 5px; height: 5px; border-radius: 50%; }
+  .dot.filled { background: var(--terra); }
+  .dot.empty { background: #e0d8d0; }
+  .cart-bar {
+    background: var(--teal);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+  .cart-info { font-size: 10px; color: rgba(255,255,255,0.8); }
+  .cart-cta { font-size: 10px; font-weight: 600; color: #fff; }
+
+  /* ─── BENEFIT CARDS ─────────────────────────────── */
+  .benefit-card {
+    background: var(--sand);
+    border-radius: 12px;
+    padding: 24px;
+    border-top: 3px solid var(--teal-mid);
+  }
+  .benefit-icon { font-size: 32px; margin-bottom: 12px; }
+  .benefit-title { font-weight: 600; color: var(--teal); margin-bottom: 8px; }
+  .benefit-desc { font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .benefit-metric {
+    background: var(--teal);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-top: 12px;
+  }
+
+  /* ─── TIMELINE ──────────────────────────────────── */
+  .timeline {
+    margin-top: 32px;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 20px; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--sand-dark);
+  }
+  .tl-item {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 28px;
+    position: relative;
+  }
+  .tl-dot {
+    width: 40px; height: 40px;
+    background: var(--teal);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    color: #fff;
+    font-weight: 700;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 0 0 4px #fff;
+  }
+  .tl-body { padding-top: 8px; }
+  .tl-title { font-weight: 600; color: var(--teal); margin-bottom: 4px; }
+  .tl-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .tl-weeks {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--terra);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  /* ─── PRICING ───────────────────────────────────── */
+  .pricing-card {
+    background: var(--teal);
+    border-radius: 16px;
+    padding: 40px;
+    color: #fff;
+    max-width: 460px;
+    margin: 40px auto 0;
+  }
+  .pricing-plan { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+  .pricing-price {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 64px;
+    font-weight: 300;
+    line-height: 1;
+    margin: 12px 0;
+  }
+  .pricing-period { font-size: 13px; color: rgba(255,255,255,0.6); }
+  .pricing-divider { border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 24px 0; }
+  .pricing-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+  }
+  .pricing-check { color: #4ade80; font-weight: 700; flex-shrink: 0; }
+  .pricing-note {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 20px;
+    line-height: 1.7;
+  }
+
+  /* ─── CTA ───────────────────────────────────────── */
+  .cta-section {
+    background: var(--teal);
+    padding: 80px;
+    text-align: center;
+    color: #fff;
+  }
+  .cta-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 52px;
+    font-weight: 300;
+    line-height: 1.2;
+    margin-bottom: 20px;
+  }
+  .cta-subtitle {
+    font-size: 15px;
+    color: rgba(255,255,255,0.65);
+    max-width: 480px;
+    margin: 0 auto 40px;
+    line-height: 1.8;
+  }
+  .cta-btn {
+    background: var(--terra);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 16px 40px;
+    border-radius: 4px;
+    display: inline-block;
+    margin: 0 8px;
+  }
+  .cta-btn.secondary {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.8);
+  }
+  .cta-contact {
+    margin-top: 48px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+  }
+
+  /* ─── UTILITY ───────────────────────────────────── */
+  .mt-8  { margin-top: 8px; }
+  .mt-16 { margin-top: 16px; }
+  .mt-24 { margin-top: 24px; }
+  .mt-32 { margin-top: 32px; }
+  .mt-48 { margin-top: 48px; }
+  .mb-4  { margin-bottom: 4px; }
+  .bold  { font-weight: 600; }
+  .teal  { color: var(--teal); }
+  .terra { color: var(--terra); }
+  .muted { color: var(--muted); font-size: 13px; }
+  .small { font-size: 12px; }
+  .tag {
+    display: inline-block;
+    background: var(--terra-light);
+    color: var(--terra);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+
+  /* ─── PRINT ─────────────────────────────────────── */
+  @media print {
+    .cover { min-height: 100vh; }
+    .page { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     COVER
+═══════════════════════════════════════════════════ -->
+<div class="cover">
+  <div>
+    <div class="cover-lamp">🪔</div>
+    <div class="cover-wordmark">SANADIGE</div>
+    <div class="cover-tagline">Coastal Indian Cuisine · Chanakyapuri, New Delhi</div>
+  </div>
+
+  <div>
+    <div class="cover-divider"></div>
+    <div class="cover-title">A Digital Experience<br>Worthy of Your Kitchen</div>
+    <div class="cover-subtitle">
+      A comprehensive digital platform — WhatsApp reservations &amp; service automation,
+      a real-time staff dashboard, and a QR-powered digital menu — built specifically
+      for Sanadige's premium coastal dining experience.
+    </div>
+  </div>
+
+  <div class="cover-footer">
+    <div class="cover-meta">CONFIDENTIAL · APRIL 2026</div>
+    <div class="cover-badge">Proposal</div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     ABOUT SANADIGE
+═══════════════════════════════════════════════════ -->
+<div class="page" style="padding-top:80px; padding-bottom:60px;">
+  <div class="section-eyebrow">About</div>
+  <div class="section-title">Delhi's Finest<br>Coastal Table</div>
+  <div class="section-body">
+    Sanadige — "brass lamp" in Kannada — has carved a singular niche in Delhi's competitive fine-dining landscape. Nestled in Malcha Marg, Chanakyapuri, under the Goldfinch Hotels banner, the restaurant draws diplomats, expats, and discerning Delhiites to one of the capital's most authentic coastal Indian experiences.
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-number">4.3<span style="font-size:16px">/5</span></div>
+      <div class="stat-label">TripAdvisor Rating<br><span style="color:#888;">#223 of 4,639 Delhi restaurants</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">4.5<span style="font-size:16px">/5</span></div>
+      <div class="stat-label">Justdial Rating<br><span style="color:#888;">Consistently top-reviewed</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">8.3k</div>
+      <div class="stat-label">Instagram Followers<br><span style="color:#888;">@sanadige · Growing</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">Big&nbsp;F</div>
+      <div class="stat-label">Awards 2024<br><span style="color:#888;">Best Coastal Cuisine</span></div>
+    </div>
+  </div>
+
+  <div class="divider" style="margin-top:40px;"></div>
+
+  <div class="two-col" style="margin-top:0;">
+    <div>
+      <div class="bold teal mb-4">What Makes Sanadige Special</div>
+      <ul style="list-style:none; padding:0; margin-top:12px;">
+        <li style="padding:8px 0; border-bottom:1px solid var(--sand-dark); font-size:13px; color:#555; display:flex; gap:10px;"><span>🐟</span> <span>Fresh seafood flown in from Mumbai <strong>every 2 days</strong> — zero frozen product</span></li>
+        <li style="padding:8px 0; border-bottom:1px solid var(--sand-dark); font-size:13px; color:#555; display:flex; gap:10px;"><span>👨‍🍳</span> <span>Authentic coastal Indian cuisine spanning Goa, Kerala, Mangalore &amp; Konkan</span></li>
+        <li style="padding:8px 0; border-bottom:1px solid var(--sand-dark); font-size:13px; color:#555; display:flex; gap:10px;"><span>🏛️</span> <span>Prime Diplomatic Enclave location — walking distance from 10+ embassies</span></li>
+        <li style="padding:8px 0; border-bottom:1px solid var(--sand-dark); font-size:13px; color:#555; display:flex; gap:10px;"><span>🍽️</span> <span>₹2,000–4,000 per couple — premium positioning, not luxury-aspirational</span></li>
+        <li style="padding:8px 0; font-size:13px; color:#555; display:flex; gap:10px;"><span>🌊</span> <span>Intimate multi-section layout: Terrace, Floor 1, Floor 2, Private dining</span></li>
+      </ul>
+    </div>
+    <div>
+      <div class="bold teal mb-4">Your Guests</div>
+      <div style="margin-top:12px;">
+        <span class="tag">Diplomats</span>
+        <span class="tag">Expats</span>
+        <span class="tag">HNI Professionals</span>
+        <span class="tag">Food Connoisseurs</span>
+        <span class="tag">Corporate Diners</span>
+        <span class="tag">Weekend Families</span>
+      </div>
+      <div class="mt-16 muted" style="line-height:1.8;">
+        Your guests arrive with high expectations — the kind built on Instagram recommendations, word-of-mouth from the embassy circuit, and accolades like the Big F Award. They appreciate quality, authenticity, and seamless hospitality. The experience they have from reservation to the last bite must match the food on the plate.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     THE PROBLEM
+═══════════════════════════════════════════════════ -->
+<div class="page" style="background:var(--sand); padding-top:80px; padding-bottom:60px;">
+  <div class="section-eyebrow">The Challenge</div>
+  <div class="section-title">What's Holding<br>Great Service Back</div>
+  <div class="section-body">
+    Sanadige's food consistently earns 5-star reviews. But a recurring theme in guest feedback reveals friction points in the <strong>experience around the meal</strong> — things that don't show up in the kitchen but do show up on TripAdvisor.
+  </div>
+
+  <div class="three-col">
+    <div class="problem-card">
+      <div class="problem-icon">📅</div>
+      <div class="problem-title">Reservation Honoring</div>
+      <div class="problem-desc">Guests report arriving with a confirmed booking only to experience extended waits or seating delays. Trust built at booking is lost at the door.</div>
+      <div class="problem-quote">"Had a reservation but still had to wait 20 minutes to be seated." — TripAdvisor</div>
+    </div>
+    <div class="problem-card">
+      <div class="problem-icon">📋</div>
+      <div class="problem-title">Menu Availability Confusion</div>
+      <div class="problem-desc">Staff frequently have to inform seated guests that a specific catch or special dish is unavailable — after anticipation has already been built. This is a trust-breaker at a seafood restaurant.</div>
+      <div class="problem-quote">"Ordered a fish dish only to be told it was unavailable." — Google Review</div>
+    </div>
+    <div class="problem-card">
+      <div class="problem-icon">⏱️</div>
+      <div class="problem-title">Service Speed &amp; Staff Load</div>
+      <div class="problem-desc">Manual order-taking, paper KOTs, and verbal communication between floor and kitchen create bottlenecks, especially during peak service when staff are stretched.</div>
+      <div class="problem-quote">"Good food but service was slow during busy hours." — TripAdvisor</div>
+    </div>
+  </div>
+
+  <div class="two-col" style="margin-top:28px;">
+    <div class="problem-card">
+      <div class="problem-icon">💬</div>
+      <div class="problem-title">No Guest Communication System</div>
+      <div class="problem-desc">Reservations come in via phone or walk-in, with no structured confirmation, reminder, or pre-arrival communication. Guests forget, arrive at wrong times, or cancel via unanswered calls.</div>
+    </div>
+    <div class="problem-card">
+      <div class="problem-icon">📊</div>
+      <div class="problem-title">No Operational Visibility</div>
+      <div class="problem-desc">Managers lack a live view of the floor: how many covers tonight, which tables have ordered, what's pending in the kitchen, how revenue tracks against previous weeks.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     SOLUTION OVERVIEW
+═══════════════════════════════════════════════════ -->
+<div class="page" style="padding-top:80px; padding-bottom:60px;">
+  <div class="section-eyebrow">The Solution</div>
+  <div class="section-title">Three Integrated<br>Systems, One Platform</div>
+  <div class="section-body">
+    A custom-built digital stack designed specifically for Sanadige — not an off-the-shelf POS or a generic restaurant app, but a tightly integrated set of tools built around how your team actually works.
+  </div>
+
+  <div class="three-col">
+    <div class="solution-card">
+      <div class="solution-num">1</div>
+      <div class="solution-title">💬 WhatsApp Automation</div>
+      <div class="solution-desc">Reservations, confirmations, reminders, and day-of service updates — all automated through WhatsApp Business API. Guests interact through a familiar channel. Staff stay informed without manual calls.</div>
+    </div>
+    <div class="solution-card">
+      <div class="solution-num">2</div>
+      <div class="solution-title">📊 Staff Dashboard</div>
+      <div class="solution-desc">A web-based command centre for managers and waiters. Live bookings, kitchen orders in a Kanban swimlane, KPIs, and a new-order flow — all in one screen, in real-time.</div>
+    </div>
+    <div class="solution-card">
+      <div class="solution-num">3</div>
+      <div class="solution-title">📱 QR Digital Menu</div>
+      <div class="solution-desc">Guests scan a table QR code to browse the full menu with live catch availability, ask Claude AI about any dish, and place orders directly — from their own phone, no app install needed.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:48px; background:var(--teal-light); border-radius:12px; padding:28px; display:flex; align-items:flex-start; gap:20px;">
+    <div style="font-size:32px; flex-shrink:0;">🔗</div>
+    <div>
+      <div class="bold teal">How They Work Together</div>
+      <div class="mt-8 muted" style="line-height:1.8;">
+        A guest books via WhatsApp → receives a confirmation + reminder automatically → arrives, scans the QR at their table → browses live catch availability, asks questions via AI, places their order → kitchen sees it instantly on the dashboard → waiter is notified when order is ready → manager sees the full evening's performance in one view. Every step connected.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     FEATURE 1: WHATSAPP
+═══════════════════════════════════════════════════ -->
+<div class="page" style="background:var(--sand); padding-top:80px; padding-bottom:60px;">
+  <div class="feature-header">
+    <div class="feature-icon-circle">💬</div>
+    <div>
+      <div class="feature-tag">Feature 1</div>
+      <div class="feature-name">WhatsApp Automation</div>
+    </div>
+  </div>
+
+  <div class="section-body">
+    Your guests already live on WhatsApp. Instead of asking them to download an app or navigate a website, we meet them where they are — with a structured, automated booking and service flow using the official WhatsApp Business API.
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- CUSTOMER FLOW -->
+  <div class="wa-flow">
+    <div class="wa-flow-title">🧑‍💼 Customer Journey — Booking via WhatsApp</div>
+    <div class="flow-row">
+
+      <!-- Step 1 -->
+      <div class="flow-step">
+        <div class="wa-screen">
+          <div class="wa-topbar">
+            <div class="wa-avatar">🪔</div>
+            <div><div class="wa-name">Sanadige Delhi</div><div class="wa-status">Online</div></div>
+          </div>
+          <div class="wa-body" style="padding:12px;">
+            <div class="wa-msg from-rest">
+              Namaste! 🙏 Welcome to <strong>Sanadige Delhi</strong>.<br><br>
+              How can we help you today?
+              <div class="wa-btn-row">
+                <div class="wa-btn">📅 Make a Reservation</div>
+                <div class="wa-btn">🍽️ Today's Catch</div>
+                <div class="wa-btn">📍 Location &amp; Hours</div>
+              </div>
+              <div class="wa-msg-time">10:32 AM</div>
+            </div>
+          </div>
+        </div>
+        <div class="flow-step-label">1 · Welcome Menu</div>
+      </div>
+
+      <div class="flow-arrow">→</div>
+
+      <!-- Step 2 -->
+      <div class="flow-step">
+        <div class="wa-screen">
+          <div class="wa-topbar">
+            <div class="wa-avatar">🪔</div>
+            <div><div class="wa-name">Sanadige Delhi</div><div class="wa-status">Online</div></div>
+          </div>
+          <div class="wa-body" style="padding:12px;">
+            <div class="wa-msg from-rest">
+              Great! Let's get your table ready 🎉<br><br>
+              How many guests will be dining?
+              <div class="wa-btn-row">
+                <div class="wa-btn">👤 1–2 Guests</div>
+                <div class="wa-btn">👥 3–4 Guests</div>
+                <div class="wa-btn">🎊 5–8 Guests</div>
+                <div class="wa-btn">🏢 9+ / Private</div>
+              </div>
+              <div class="wa-msg-time">10:33 AM</div>
+            </div>
+          </div>
+        </div>
+        <div class="flow-step-label">2 · Party Size</div>
+      </div>
+
+      <div class="flow-arrow">→</div>
+
+      <!-- Step 3 -->
+      <div class="flow-step">
+        <div class="wa-screen">
+          <div class="wa-topbar">
+            <div class="wa-avatar">🪔</div>
+            <div><div class="wa-name">Sanadige Delhi</div><div class="wa-status">Online</div></div>
+          </div>
+          <div class="wa-body" style="padding:12px;">
+            <div class="wa-msg from-rest">
+              Perfect! Which date works for you?
+              <div class="wa-btn-row" style="margin-top:8px;">
+                <div class="wa-btn">Today — Apr 20</div>
+                <div class="wa-btn">Tomorrow — Apr 21</div>
+                <div class="wa-btn">📅 Choose another date</div>
+              </div>
+              <div class="wa-msg-time">10:33 AM</div>
+            </div>
+            <div class="wa-msg from-guest">Tomorrow — Apr 21<div class="wa-msg-time">10:34 AM ✓✓</div></div>
+            <div class="wa-msg from-rest">
+              And the time?
+              <div class="wa-btn-row">
+                <div class="wa-btn">🕐 Lunch: 12:00 / 1:00 / 2:00</div>
+                <div class="wa-btn">🌙 Dinner: 7:00 / 8:00 / 9:00</div>
+              </div>
+              <div class="wa-msg-time">10:34 AM</div>
+            </div>
+          </div>
+        </div>
+        <div class="flow-step-label">3 · Date &amp; Time</div>
+      </div>
+
+      <div class="flow-arrow">→</div>
+
+      <!-- Step 4 -->
+      <div class="flow-step">
+        <div class="wa-screen">
+          <div class="wa-topbar">
+            <div class="wa-avatar">🪔</div>
+            <div><div class="wa-name">Sanadige Delhi</div><div class="wa-status">Online</div></div>
+          </div>
+          <div class="wa-body" style="padding:12px;">
+            <div class="wa-msg from-rest">
+              ✅ <strong>Booking Confirmed!</strong><br><br>
+              📅 Apr 21 · 8:00 PM<br>
+              👥 2 Guests · Terrace<br>
+              📌 22/48, Malcha Marg<br><br>
+              We'll send you a reminder 2 hours before. See you tomorrow! 🌊
+              <div class="wa-msg-time">10:35 AM</div>
+            </div>
+          </div>
+        </div>
+        <div class="flow-step-label">4 · Confirmed</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Reminder + Day-of flow -->
+  <div class="mt-32">
+    <div class="wa-flow-title">⏰ Automated Reminders &amp; Day-of Service</div>
+    <div class="two-col" style="margin-top:0;">
+      <div>
+        <div style="font-size:13px; color:var(--teal); font-weight:600; margin-bottom:12px;">2-Hour Reminder</div>
+        <div class="wa-screen" style="max-width:100%;">
+          <div class="wa-topbar">
+            <div class="wa-avatar">🪔</div>
+            <div><div class="wa-name">Sanadige Delhi</div><div class="wa-status">Online</div></div>
+          </div>
+          <div class="wa-body" style="padding:12px; min-height:auto;">
+            <div class="wa-msg from-rest">
+              🌊 Your table at <strong>Sanadige</strong> is in 2 hours!<br><br>
+              📅 Tonight · 8:00 PM · 2 Guests<br><br>
+              Today's catch includes <strong>Pomfret, Anjal &amp; Red Snapper</strong> — fresh from Mumbai this morning.<br><br>
+              Need to modify or cancel?
+              <div class="wa-btn-row">
+                <div class="wa-btn">✅ See you tonight!</div>
+                <div class="wa-btn">🔄 Change Booking</div>
+                <div class="wa-btn">❌ Cancel Reservation</div>
+              </div>
+              <div class="wa-msg-time">6:00 PM</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:13px; color:var(--teal); font-weight:600; margin-bottom:12px;">Post-Meal Feedback</div>
+        <div class="wa-screen" style="max-width:100%;">
+          <div class="wa-topbar">
+            <div class="wa-avatar">🪔</div>
+            <div><div class="wa-name">Sanadige Delhi</div><div class="wa-status">Online</div></div>
+          </div>
+          <div class="wa-body" style="padding:12px; min-height:auto;">
+            <div class="wa-msg from-rest">
+              Thank you for dining with us tonight! 🙏<br><br>
+              We hope the Pomfret Tawa Fry was everything you hoped for.<br><br>
+              How was your experience?
+              <div class="wa-btn-row">
+                <div class="wa-btn">⭐⭐⭐⭐⭐ Exceptional</div>
+                <div class="wa-btn">⭐⭐⭐⭐ Very Good</div>
+                <div class="wa-btn">💬 Share feedback</div>
+              </div>
+              <div class="wa-msg-time">10:45 PM</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Staff WhatsApp Alerts -->
+  <div class="mt-32">
+    <div class="wa-flow-title">👨‍🍳 Staff WhatsApp Alerts</div>
+    <div class="two-col" style="margin-top:0;">
+      <div>
+        <div style="font-size:13px; color:var(--teal); font-weight:600; margin-bottom:12px;">Host / Floor Manager</div>
+        <div class="wa-screen" style="max-width:100%;">
+          <div class="wa-topbar" style="background:#1c7a6e;">
+            <div class="wa-avatar">👨‍💼</div>
+            <div><div class="wa-name">Sanadige Ops</div><div class="wa-status">Staff Channel</div></div>
+          </div>
+          <div class="wa-body" style="padding:12px; min-height:auto; background:#ece5dd;">
+            <div class="wa-msg from-rest" style="border-left:3px solid var(--terra); padding-left:10px; border-radius:0 8px 8px 0;">
+              📅 <strong>New Booking Alert</strong><br>
+              Priya Sharma · 2 guests<br>
+              Tonight · 8:00 PM · Terrace-2<br>
+              Note: Anniversary dinner<br>
+              <span style="color:#888; font-size:10px;">via WhatsApp Automation</span>
+              <div class="wa-msg-time">2:45 PM</div>
+            </div>
+            <div class="wa-msg from-rest" style="margin-top:8px; border-left:3px solid #f59e0b; padding-left:10px; border-radius:0 8px 8px 0;">
+              ⚠️ <strong>Cancellation</strong><br>
+              Rahul Mehta · Floor 1-3<br>
+              7:30 PM slot now free
+              <div class="wa-msg-time">4:12 PM</div>
+            </div>
+            <div class="wa-msg from-rest" style="margin-top:8px; border-left:3px solid #22c55e; padding-left:10px; border-radius:0 8px 8px 0;">
+              📊 <strong>Tonight's Forecast</strong><br>
+              32 covers confirmed<br>
+              Peak: 8–9 PM (14 covers)<br>
+              Terrace fully booked
+              <div class="wa-msg-time">5:00 PM</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:13px; color:var(--teal); font-weight:600; margin-bottom:12px;">Kitchen Staff</div>
+        <div class="wa-screen" style="max-width:100%;">
+          <div class="wa-topbar" style="background:#1c7a6e;">
+            <div class="wa-avatar">👨‍🍳</div>
+            <div><div class="wa-name">Kitchen Channel</div><div class="wa-status">Staff Channel</div></div>
+          </div>
+          <div class="wa-body" style="padding:12px; min-height:auto; background:#ece5dd;">
+            <div class="wa-msg from-rest" style="border-left:3px solid var(--teal-mid); padding-left:10px; border-radius:0 8px 8px 0;">
+              🆕 <strong>New Order — T-3</strong><br>
+              × 1 Anjal Tawa Fry<br>
+              × 2 Crab Butter Garlic<br>
+              × 1 Appam (3 pcs)<br>
+              <span style="color:var(--terra); font-size:11px; font-weight:600;">PENDING · 8:14 PM</span>
+              <div class="wa-msg-time">8:14 PM</div>
+            </div>
+            <div class="wa-msg from-rest" style="margin-top:8px; border-left:3px solid #22c55e; padding-left:10px; border-radius:0 8px 8px 0;">
+              📌 <strong>Upcoming Load</strong><br>
+              3 orders pending, 2 in prep<br>
+              Next booking peak: 8:30 PM
+              <div class="wa-msg-time">8:15 PM</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     FEATURE 2: DASHBOARD
+═══════════════════════════════════════════════════ -->
+<div class="page" style="padding-top:80px; padding-bottom:60px;">
+  <div class="feature-header">
+    <div class="feature-icon-circle">📊</div>
+    <div>
+      <div class="feature-tag">Feature 2</div>
+      <div class="feature-name">Staff Operations Dashboard</div>
+    </div>
+  </div>
+
+  <div class="section-body">
+    A web-based dashboard that gives your team — manager, host, waiters, and kitchen — a single live view of everything happening in the restaurant. Accessible from any tablet or laptop, no app install required.
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Main Dashboard Mockup -->
+  <div class="wa-flow-title">📺 Dashboard Overview — Home Screen</div>
+  <div class="dashboard-mockup">
+    <div class="db-topbar">
+      <div class="db-logo">SANADIGE</div>
+      <div class="db-nav">
+        <div class="db-nav-item active">Home</div>
+        <div class="db-nav-item">Bookings</div>
+        <div class="db-nav-item">Orders</div>
+        <div class="db-nav-item">Menu</div>
+      </div>
+      <div style="font-size:11px; color:rgba(255,255,255,0.5);">Manager · Logged in</div>
+    </div>
+    <div class="db-body">
+      <div class="db-header-row">
+        <div>
+          <div class="db-page-title">Good evening, Sanadige</div>
+          <div style="font-size:11px; color:var(--muted);">Sunday, 20 April 2026 · Dinner Service</div>
+        </div>
+        <div class="db-btn">+ New Booking</div>
+      </div>
+
+      <div class="db-kpi-row">
+        <div class="db-kpi">
+          <div class="db-kpi-label">Tonight's Covers</div>
+          <div class="db-kpi-val">38</div>
+          <div class="db-kpi-sub">↑ +6 vs last Sunday</div>
+        </div>
+        <div class="db-kpi">
+          <div class="db-kpi-label">Active Orders</div>
+          <div class="db-kpi-val">7</div>
+          <div class="db-kpi-sub" style="color:var(--terra);">3 pending kitchen</div>
+        </div>
+        <div class="db-kpi">
+          <div class="db-kpi-label">Revenue (Est.)</div>
+          <div class="db-kpi-val">₹48k</div>
+          <div class="db-kpi-sub">↑ +12% vs last wk</div>
+        </div>
+        <div class="db-kpi">
+          <div class="db-kpi-label">Tables Occupied</div>
+          <div class="db-kpi-val">12<span style="font-size:14px;">/20</span></div>
+          <div class="db-kpi-sub">8 available now</div>
+        </div>
+      </div>
+
+      <div class="db-grid">
+        <div class="db-card">
+          <div class="db-card-title">Tonight's Bookings</div>
+          <div class="db-booking-row">
+            <div class="db-time">07:00 PM</div>
+            <div class="db-guest">Arjun Kapoor · 4 guests</div>
+            <div class="db-floor-badge floor-terrace">Terrace</div>
+          </div>
+          <div class="db-booking-row">
+            <div class="db-time">07:30 PM</div>
+            <div class="db-guest">Sarah Mitchell · 2 guests</div>
+            <div class="db-floor-badge floor-floor1">Floor 1</div>
+          </div>
+          <div class="db-booking-row">
+            <div class="db-time">08:00 PM</div>
+            <div class="db-guest">Priya Sharma · 2 guests · Anniv.</div>
+            <div class="db-floor-badge floor-terrace">Terrace</div>
+          </div>
+          <div class="db-booking-row">
+            <div class="db-time">08:00 PM</div>
+            <div class="db-guest">Rajesh Menon · 6 guests</div>
+            <div class="db-floor-badge floor-private">Private</div>
+          </div>
+          <div class="db-booking-row">
+            <div class="db-time">08:30 PM</div>
+            <div class="db-guest">David Lee · 3 guests</div>
+            <div class="db-floor-badge floor-floor2">Floor 2</div>
+          </div>
+        </div>
+        <div>
+          <div class="db-card" style="margin-bottom:12px;">
+            <div class="db-card-title">Today's Catch</div>
+            <div style="font-size:11px; line-height:1.8; color:var(--text);">
+              <div style="display:flex; justify-content:space-between;"><span>🐟 Pomfret</span><span style="color:#16a34a; font-weight:600;">Available</span></div>
+              <div style="display:flex; justify-content:space-between;"><span>🐟 Anjal (Kingfish)</span><span style="color:#16a34a; font-weight:600;">Available</span></div>
+              <div style="display:flex; justify-content:space-between;"><span>🦀 Mud Crab</span><span style="color:#16a34a; font-weight:600;">3 remaining</span></div>
+              <div style="display:flex; justify-content:space-between;"><span>🐟 Red Snapper</span><span style="color:#dc2626; font-weight:600;">Sold Out</span></div>
+              <div style="display:flex; justify-content:space-between;"><span>🦐 Tiger Prawns</span><span style="color:#16a34a; font-weight:600;">Available</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Orders Board Mockup -->
+  <div class="mt-48">
+    <div class="wa-flow-title">🍽️ Kitchen Orders Board — Live Swimlane View</div>
+    <div class="dashboard-mockup">
+      <div class="db-topbar">
+        <div class="db-logo">SANADIGE</div>
+        <div class="db-nav">
+          <div class="db-nav-item">Home</div>
+          <div class="db-nav-item">Bookings</div>
+          <div class="db-nav-item active">Orders</div>
+          <div class="db-nav-item">Menu</div>
+        </div>
+        <div class="db-btn">+ New Order</div>
+      </div>
+      <div class="db-body">
+        <div class="db-header-row">
+          <div>
+            <div class="db-page-title">Kitchen Orders</div>
+            <div style="font-size:11px; color:var(--muted);">Live · Updates automatically · 7 active orders</div>
+          </div>
+        </div>
+        <div class="swimlane-row">
+          <div class="swimlane-col">
+            <div class="swimlane-header sl-pending">⏳ Pending (3)</div>
+            <div class="order-card" style="border-left-color:#f59e0b;">
+              <div class="order-table">T-3 · Terrace</div>
+              <div class="order-items">× 1 Anjal Tawa Fry<br>× 2 Crab Butter Garlic<br>× 1 Appam (3 pcs)</div>
+              <div class="order-time">8:14 PM · 4 min ago</div>
+              <div class="order-action">Acknowledge →</div>
+            </div>
+            <div class="order-card" style="border-left-color:#f59e0b;">
+              <div class="order-table">F1-2 · Floor 1</div>
+              <div class="order-items">× 1 Prawn Moilee<br>× 1 Kerala Parotta<br>× 2 Solkadhi</div>
+              <div class="order-time">8:18 PM · Just now</div>
+              <div class="order-action">Acknowledge →</div>
+            </div>
+          </div>
+          <div class="swimlane-col">
+            <div class="swimlane-header sl-ack">👨‍🍳 In Kitchen (2)</div>
+            <div class="order-card">
+              <div class="order-table">T-1 · Terrace</div>
+              <div class="order-items">× 2 Pomfret Rawa Fry<br>× 1 Kokum Shorba</div>
+              <div class="order-time">7:52 PM · 26 min</div>
+              <div class="order-action green">Mark Served →</div>
+            </div>
+            <div class="order-card">
+              <div class="order-table">Pvt-1 · Private</div>
+              <div class="order-items">× 6 Starter Platter<br>× 3 Mains (varies)<br>× 6 Neer Dosa</div>
+              <div class="order-time">8:01 PM · 17 min</div>
+              <div class="order-action green">Mark Served →</div>
+            </div>
+          </div>
+          <div class="swimlane-col">
+            <div class="swimlane-header sl-served">✅ Served (2)</div>
+            <div class="order-card" style="opacity:0.6; border-left-color:#22c55e;">
+              <div class="order-table">F2-1 · Floor 2</div>
+              <div class="order-items">× 1 Tiger Prawn Gassi<br>× 2 Sannas</div>
+              <div class="order-time">7:48 PM · Completed</div>
+            </div>
+            <div class="order-card" style="opacity:0.6; border-left-color:#22c55e;">
+              <div class="order-table">T-4 · Terrace</div>
+              <div class="order-items">× 2 Chicken Sukka<br>× 1 Mango Lassi</div>
+              <div class="order-time">7:36 PM · Completed</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard workflow steps -->
+  <div class="three-col" style="margin-top:40px;">
+    <div class="benefit-card" style="border-top-color:var(--terra);">
+      <div class="benefit-icon">🖥️</div>
+      <div class="benefit-title">Bookings Management</div>
+      <div class="benefit-desc">View, filter, and manage all bookings by date and floor. Staff can add walk-in bookings, edit details, or cancel with one click. Date navigation + floor filter built in.</div>
+    </div>
+    <div class="benefit-card" style="border-top-color:var(--terra);">
+      <div class="benefit-icon">⚡</div>
+      <div class="benefit-title">Real-time Orders</div>
+      <div class="benefit-desc">Orders placed via QR menu appear instantly in the Pending column. Kitchen acknowledges, then marks served. No paper KOTs, no shouting across the floor.</div>
+    </div>
+    <div class="benefit-card" style="border-top-color:var(--terra);">
+      <div class="benefit-icon">📈</div>
+      <div class="benefit-title">Manager Analytics</div>
+      <div class="benefit-desc">Daily and weekly KPI snapshots: covers, revenue, peak hours, popular dishes. Everything a manager needs to brief ownership or plan next week's prep.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     FEATURE 3: QR MENU PWA
+═══════════════════════════════════════════════════ -->
+<div class="page" style="background:var(--sand); padding-top:80px; padding-bottom:60px;">
+  <div class="feature-header">
+    <div class="feature-icon-circle">📱</div>
+    <div>
+      <div class="feature-tag">Feature 3</div>
+      <div class="feature-name">QR Digital Menu PWA</div>
+    </div>
+  </div>
+
+  <div class="section-body">
+    A premium, app-quality menu experience that lives entirely in the browser. Guests scan the QR code at their table — the menu opens instantly, showing live catch availability, beautiful dish photography, and an AI concierge that can answer any question about the food.
+  </div>
+
+  <div class="divider"></div>
+
+  <div style="display:flex; gap:48px; align-items:flex-start; margin-top:32px;">
+
+    <!-- Phone mockups -->
+    <div style="display:flex; gap:20px; flex-shrink:0;">
+
+      <!-- Screen 1: Menu Home -->
+      <div class="flow-step">
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="phone-content">
+            <div class="pwa-topbar">
+              <div>
+                <div class="pwa-logo">SANADIGE</div>
+                <div class="pwa-table">Table T-3 · Terrace</div>
+              </div>
+              <div style="font-size:18px;">🛒</div>
+            </div>
+            <div class="catch-strip-title">Today's Catch</div>
+            <div class="catch-strip">
+              <div class="catch-card">
+                <div class="catch-fish">Pomfret</div>
+                <div class="catch-local">Paplet</div>
+                <div class="live-dot">LIVE</div>
+              </div>
+              <div class="catch-card">
+                <div class="catch-fish">Anjal</div>
+                <div class="catch-local">Kingfish</div>
+                <div class="live-dot">LIVE</div>
+              </div>
+              <div class="catch-card" style="opacity:0.5;">
+                <div class="catch-fish">Red Snapper</div>
+                <div class="catch-local">Tambos</div>
+                <div style="font-size:7px; color:#dc2626; font-weight:600; margin-top:4px;">SOLD OUT</div>
+              </div>
+            </div>
+            <div class="pwa-tabs">
+              <div class="pwa-tab active">Starters</div>
+              <div class="pwa-tab">Mains</div>
+              <div class="pwa-tab">Breads</div>
+              <div class="pwa-tab">Desserts</div>
+              <div class="pwa-tab">Drinks</div>
+            </div>
+            <div class="dish-card">
+              <div class="dish-img">🦐</div>
+              <div class="dish-info">
+                <div class="dish-name">Prawn Koliwada</div>
+                <div class="dish-desc">Crispy Mumbai-style prawn fry, coastal spices</div>
+                <div class="spice-dots">
+                  <div class="dot filled"></div>
+                  <div class="dot filled"></div>
+                  <div class="dot filled"></div>
+                  <div class="dot empty"></div>
+                  <div class="dot empty"></div>
+                </div>
+                <div class="dish-footer">
+                  <div class="dish-price">₹480</div>
+                  <div style="display:flex;gap:4px;">
+                    <div style="font-size:8px; color:var(--terra); border:1px solid var(--terra); border-radius:4px; padding:2px 5px;">Ask →</div>
+                    <div class="dish-add">+ Add</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="dish-card">
+              <div class="dish-img">🦀</div>
+              <div class="dish-info">
+                <div class="dish-name">Crab Sukka</div>
+                <div class="dish-desc">Mangalorean spiced mud crab, coconut masala</div>
+                <div class="spice-dots">
+                  <div class="dot filled"></div>
+                  <div class="dot filled"></div>
+                  <div class="dot filled"></div>
+                  <div class="dot filled"></div>
+                  <div class="dot empty"></div>
+                </div>
+                <div class="dish-footer">
+                  <div class="dish-price">₹1,200</div>
+                  <div style="display:flex;gap:4px;">
+                    <div style="font-size:8px; color:var(--terra); border:1px solid var(--terra); border-radius:4px; padding:2px 5px;">Ask →</div>
+                    <div class="dish-add">+ Add</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flow-step-label" style="max-width:240px;">Menu &amp; Live Catch</div>
+      </div>
+
+      <!-- Screen 2: AI Ask Panel -->
+      <div class="flow-step">
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="phone-content">
+            <div class="pwa-topbar">
+              <div>
+                <div class="pwa-logo">SANADIGE</div>
+                <div class="pwa-table">Ask about this dish</div>
+              </div>
+              <div style="font-size:18px; color:rgba(255,255,255,0.6);">✕</div>
+            </div>
+            <div style="padding:14px;">
+              <div style="font-size:13px; font-weight:700; color:var(--teal); margin-bottom:12px;">Anjal Tawa Fry</div>
+
+              <div style="background:var(--teal-light); border-radius:8px 8px 8px 0; padding:8px 10px; font-size:10px; color:var(--teal); line-height:1.5; margin-bottom:8px; max-width:90%;">
+                The Anjal (Kingfish) is prepared Goa-style — marinated with red chilli, turmeric and kokum, then shallow-fried on the tawa for a crispy crust. It's one of our most requested dishes.
+              </div>
+
+              <div style="background:#dcf8c6; border-radius:8px 8px 0 8px; padding:8px 10px; font-size:10px; color:#1a3a38; line-height:1.5; margin-bottom:8px; max-width:90%; margin-left:auto;">
+                Is it boneless?
+              </div>
+
+              <div style="background:var(--teal-light); border-radius:8px 8px 8px 0; padding:8px 10px; font-size:10px; color:var(--teal); line-height:1.5; margin-bottom:8px; max-width:90%;">
+                Yes, boneless is available on request — add a note when you place your order and the kitchen will debone it for you.
+              </div>
+
+              <div style="background:#dcf8c6; border-radius:8px 8px 0 8px; padding:8px 10px; font-size:10px; color:#1a3a38; line-height:1.5; margin-bottom:8px; max-width:90%; margin-left:auto;">
+                Is it spicy?
+              </div>
+
+              <div style="background:var(--teal-light); border-radius:8px 8px 8px 0; padding:8px 10px; font-size:10px; color:var(--teal); line-height:1.5; max-width:90%;">
+                It's a medium spice (3/5). The marinade has red chilli but the heat is balanced. We can make it milder on request.
+              </div>
+
+              <div style="margin-top:12px; display:flex; border:1px solid var(--sand-dark); border-radius:8px; overflow:hidden;">
+                <div style="flex:1; padding:6px 10px; font-size:10px; color:var(--muted);">Ask anything about this dish...</div>
+                <div style="background:var(--teal); padding:6px 10px; font-size:10px; color:#fff; font-weight:600;">Send</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flow-step-label" style="max-width:240px;">AI Dish Chat</div>
+      </div>
+
+      <!-- Screen 3: Cart + Order Placed -->
+      <div class="flow-step">
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="phone-content">
+            <div class="pwa-topbar">
+              <div class="pwa-logo">SANADIGE</div>
+              <div style="font-size:12px; color:rgba(255,255,255,0.8); background:var(--terra); border-radius:10px; padding:2px 8px;">3 items</div>
+            </div>
+            <div style="padding:14px;">
+              <div style="font-size:12px; font-weight:700; color:var(--teal); margin-bottom:12px;">Your Order · T-3</div>
+
+              <div style="border:1px solid var(--sand-dark); border-radius:8px; padding:10px; margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;">
+                  <div><div style="font-weight:600; color:var(--teal);">Prawn Koliwada</div><div style="color:var(--muted); font-size:9px;">₹480 each</div></div>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="background:var(--sand); border-radius:4px; padding:1px 6px; font-size:11px; font-weight:700;">−</div>
+                    <div style="font-size:12px; font-weight:700;">1</div>
+                    <div style="background:var(--teal); color:#fff; border-radius:4px; padding:1px 6px; font-size:11px; font-weight:700;">+</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="border:1px solid var(--sand-dark); border-radius:8px; padding:10px; margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;">
+                  <div><div style="font-weight:600; color:var(--teal);">Anjal Tawa Fry</div><div style="color:var(--muted); font-size:9px;">₹850 each · Boneless</div></div>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="background:var(--sand); border-radius:4px; padding:1px 6px; font-size:11px; font-weight:700;">−</div>
+                    <div style="font-size:12px; font-weight:700;">1</div>
+                    <div style="background:var(--teal); color:#fff; border-radius:4px; padding:1px 6px; font-size:11px; font-weight:700;">+</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="border:1px solid var(--sand-dark); border-radius:8px; padding:10px; margin-bottom:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;">
+                  <div><div style="font-weight:600; color:var(--teal);">Neer Dosa (6 pcs)</div><div style="color:var(--muted); font-size:9px;">₹220 each</div></div>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="background:var(--sand); border-radius:4px; padding:1px 6px; font-size:11px; font-weight:700;">−</div>
+                    <div style="font-size:12px; font-weight:700;">1</div>
+                    <div style="background:var(--teal); color:#fff; border-radius:4px; padding:1px 6px; font-size:11px; font-weight:700;">+</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; color:var(--teal); padding:8px 0; border-top:1px solid var(--sand-dark);">
+                <span>Subtotal</span>
+                <span>₹1,550</span>
+              </div>
+
+              <div style="background:var(--teal); color:#fff; border-radius:8px; padding:12px; text-align:center; font-size:12px; font-weight:700; margin-top:16px;">
+                Place Order →
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flow-step-label" style="max-width:240px;">Cart &amp; Place Order</div>
+      </div>
+
+    </div>
+
+    <!-- Feature highlights -->
+    <div style="flex:1;">
+      <div style="margin-bottom:20px;">
+        <div class="bold teal">Live Catch Availability</div>
+        <div class="muted mt-8" style="line-height:1.7;">The catch strip at the top updates in real-time. When a fish sells out, it shows instantly — no more waiters apologising at the table for unavailable items. Guests browse knowing exactly what's available right now.</div>
+      </div>
+      <div style="margin-bottom:20px; padding-top:20px; border-top:1px solid var(--sand-dark);">
+        <div class="bold teal">AI Dish Concierge</div>
+        <div class="muted mt-8" style="line-height:1.7;">Every dish has an "Ask →" button. Guests can ask anything: "Is this boneless?", "How spicy is this?", "What's the best catch today?", "Is there a vegetarian option?" — answered instantly by Claude AI, trained on your exact menu.</div>
+      </div>
+      <div style="margin-bottom:20px; padding-top:20px; border-top:1px solid var(--sand-dark);">
+        <div class="bold teal">Orders Direct to Kitchen</div>
+        <div class="muted mt-8" style="line-height:1.7;">When a guest taps "Place Order", it goes directly to the kitchen's live board — zero relay through a waiter. Waiters are freed from order-taking to focus on table experience and upselling.</div>
+      </div>
+      <div style="padding-top:20px; border-top:1px solid var(--sand-dark);">
+        <div class="bold teal">No App Install · PWA</div>
+        <div class="muted mt-8" style="line-height:1.7;">Guests open the menu in their phone's browser by scanning the QR code. It feels like an app — smooth transitions, offline capability, installable to home screen — but requires zero download. Works on all phones.</div>
+      </div>
+
+      <div style="background:var(--teal); border-radius:10px; padding:20px; margin-top:28px; color:#fff;">
+        <div style="font-size:11px; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.5); margin-bottom:8px;">The QR Code</div>
+        <div style="font-size:14px; line-height:1.7;">Each table gets a custom QR code printed on a card or etched into a standee — encoded with the table ID (T-3, Terrace-1, etc.). Scanning opens <span style="color:#7dd3fc;">menu.sanadige.in/T-3</span> — the menu knows which table placed the order automatically.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     BUSINESS BENEFITS
+═══════════════════════════════════════════════════ -->
+<div class="page" style="padding-top:80px; padding-bottom:60px;">
+  <div class="section-eyebrow">Business Impact</div>
+  <div class="section-title">What This Means<br>for Sanadige</div>
+  <div class="section-body">
+    Every feature is designed around a specific operational or revenue outcome. Here's how the platform translates into measurable improvements.
+  </div>
+
+  <div class="three-col">
+    <div class="benefit-card">
+      <div class="benefit-icon">📉</div>
+      <div class="benefit-title">Reduce No-Shows</div>
+      <div class="benefit-desc">Automated WhatsApp reminders with confirmation buttons cut no-show rates dramatically. Guests who intend to cancel do so in advance, freeing tables for walk-ins.</div>
+      <div class="benefit-metric">–30–50% no-show rate</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">⚡</div>
+      <div class="benefit-title">Faster Table Turns</div>
+      <div class="benefit-desc">When guests order directly from their phones, the kitchen receives orders before they'd even flag a waiter. Service feels faster and more attentive simultaneously.</div>
+      <div class="benefit-metric">–8 min avg order time</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">💰</div>
+      <div class="benefit-title">Higher Average Spend</div>
+      <div class="benefit-desc">The AI concierge answers "what's good tonight" and surfaces today's fresh catch prominently — naturally driving guests toward premium catch items they might not have ordered.</div>
+      <div class="benefit-metric">↑ catch item orders</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">⭐</div>
+      <div class="benefit-title">Better Reviews</div>
+      <div class="benefit-desc">Post-meal WhatsApp feedback captures issues before they become TripAdvisor reviews. Happy guests are directed to leave a review. The 4.3 becomes a 4.7.</div>
+      <div class="benefit-metric">↑ review volume + score</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">🧑‍🍳</div>
+      <div class="benefit-title">Staff Focus on Hospitality</div>
+      <div class="benefit-desc">Waiters stop taking orders and start building guest relationships. Hosts stop fielding booking calls and start curating seating. Everyone does what they're best at.</div>
+      <div class="benefit-metric">30% less admin per shift</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">📊</div>
+      <div class="benefit-title">Management Visibility</div>
+      <div class="benefit-desc">For the first time, a manager can see: which tables are occupied, what's been ordered, what's pending in the kitchen, and tonight's revenue — all in one screen.</div>
+      <div class="benefit-metric">Real-time floor view</div>
+    </div>
+  </div>
+
+  <!-- ROI Summary -->
+  <div style="margin-top:48px; background:var(--teal-light); border-radius:12px; padding:36px;">
+    <div class="bold teal" style="font-size:18px; margin-bottom:20px;">A Typical Sanadige Evening — Before &amp; After</div>
+    <div class="two-col" style="margin-top:0; gap:32px;">
+      <div>
+        <div style="font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#e55; margin-bottom:12px;">Before</div>
+        <ul style="list-style:none; padding:0;">
+          <li style="padding:6px 0; border-bottom:1px solid rgba(0,0,0,0.06); font-size:13px; color:#666; display:flex; gap:8px;"><span>❌</span>Phone reservation → missed call → guest doesn't book</li>
+          <li style="padding:6px 0; border-bottom:1px solid rgba(0,0,0,0.06); font-size:13px; color:#666; display:flex; gap:8px;"><span>❌</span>No-show at 8PM table; seat sits empty for 40 mins</li>
+          <li style="padding:6px 0; border-bottom:1px solid rgba(0,0,0,0.06); font-size:13px; color:#666; display:flex; gap:8px;"><span>❌</span>Guest orders Red Snapper; waiter returns — sold out</li>
+          <li style="padding:6px 0; border-bottom:1px solid rgba(0,0,0,0.06); font-size:13px; color:#666; display:flex; gap:8px;"><span>❌</span>Paper KOT misread; wrong dish to table</li>
+          <li style="padding:6px 0; font-size:13px; color:#666; display:flex; gap:8px;"><span>❌</span>Manager has no idea how the night is tracking</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#16a34a; margin-bottom:12px;">After</div>
+        <ul style="list-style:none; padding:0;">
+          <li style="padding:6px 0; border-bottom:1px solid rgba(0,0,0,0.06); font-size:13px; color:#4a6664; display:flex; gap:8px;"><span>✅</span>Guest books via WhatsApp in 90 seconds, 11PM no problem</li>
+          <li style="padding:6px 0; border-bottom:1px solid rgba(0,0,0,0.06); font-size:13px; color:#4a6664; display:flex; gap:8px;"><span>✅</span>Reminder sent at 6PM; guest confirms; table filled</li>
+          <li style="padding:6px 0; border-bottom:1px solid rgba(0,0,0,0.06); font-size:13px; color:#4a6664; display:flex; gap:8px;"><span>✅</span>QR menu shows Red Snapper as Sold Out before ordering</li>
+          <li style="padding:6px 0; border-bottom:1px solid rgba(0,0,0,0.06); font-size:13px; color:#4a6664; display:flex; gap:8px;"><span>✅</span>Order goes direct to kitchen screen; no relay errors</li>
+          <li style="padding:6px 0; font-size:13px; color:#4a6664; display:flex; gap:8px;"><span>✅</span>Dashboard shows 38 covers, ₹48k est. revenue, 3 pending orders</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     TECHNICAL + TIMELINE
+═══════════════════════════════════════════════════ -->
+<div class="page" style="background:var(--sand); padding-top:80px; padding-bottom:60px;">
+  <div class="section-eyebrow">Technical Overview</div>
+  <div class="section-title">Built to Last,<br>Not Just to Launch</div>
+  <div class="section-body">
+    The entire platform runs on battle-tested infrastructure. No vendor lock-in, no black-box systems, no per-transaction fees from a third-party POS. You own your data.
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="bold teal mb-4">How It's Built</div>
+      <div style="margin-top:12px;">
+        <div style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--sand-dark); font-size:13px; align-items:flex-start;">
+          <div style="width:100px; font-weight:600; color:var(--teal); flex-shrink:0;">Dashboard</div>
+          <div style="color:#555;">Next.js web app. Deployed on Vercel. Runs in any browser — tablet, laptop, phone. Instant global delivery, zero downtime updates.</div>
+        </div>
+        <div style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--sand-dark); font-size:13px; align-items:flex-start;">
+          <div style="width:100px; font-weight:600; color:var(--teal); flex-shrink:0;">Menu PWA</div>
+          <div style="color:#555;">Separate Next.js app at menu.sanadige.in. Loads in under 2 seconds on 4G. Feels like a native app. Works offline with cached menu.</div>
+        </div>
+        <div style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--sand-dark); font-size:13px; align-items:flex-start;">
+          <div style="width:100px; font-weight:600; color:var(--teal); flex-shrink:0;">Backend</div>
+          <div style="color:#555;">Node.js API server on your existing AWS EC2. Handles orders, menu, and AI chat. All logic is yours — no third-party dependencies for core flows.</div>
+        </div>
+        <div style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--sand-dark); font-size:13px; align-items:flex-start;">
+          <div style="width:100px; font-weight:600; color:var(--teal); flex-shrink:0;">Database</div>
+          <div style="color:#555;">Supabase (Postgres). Realtime subscriptions for live order updates. Row-level security for staff roles. Fully managed, automatic backups.</div>
+        </div>
+        <div style="display:flex; gap:12px; padding:10px 0; font-size:13px; align-items:flex-start;">
+          <div style="width:100px; font-weight:600; color:var(--teal); flex-shrink:0;">AI (Claude)</div>
+          <div style="color:#555;">Anthropic Claude API for the dish chat feature. Menu context is cached for speed. Responses are accurate, safe, and scoped only to Sanadige's menu.</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="bold teal mb-4">Delivery Timeline</div>
+      <div class="timeline" style="margin-top:16px;">
+        <div class="tl-item">
+          <div class="tl-dot">1</div>
+          <div class="tl-body">
+            <div class="tl-weeks">Week 1–2</div>
+            <div class="tl-title">Backend &amp; Database</div>
+            <div class="tl-desc">Orders API, menu routes, Claude integration, CORS setup, schema migration. Fully tested before frontend work begins.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">2</div>
+          <div class="tl-body">
+            <div class="tl-weeks">Week 3–5</div>
+            <div class="tl-title">QR Menu PWA</div>
+            <div class="tl-desc">Catch strip, menu tabs, dish cards, cart, AI panel, order confirmation. Deployed to menu.sanadige.in for testing.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">3</div>
+          <div class="tl-body">
+            <div class="tl-weeks">Week 6–7</div>
+            <div class="tl-title">Dashboard Orders Page</div>
+            <div class="tl-desc">Live Kanban board, take-order drawer, staff role access, realtime subscriptions.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">4</div>
+          <div class="tl-body">
+            <div class="tl-weeks">Week 8</div>
+            <div class="tl-title">WhatsApp Automation</div>
+            <div class="tl-desc">Booking flow, confirmation + reminder messages, staff alert channels, post-meal feedback trigger.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:var(--terra);">✓</div>
+          <div class="tl-body">
+            <div class="tl-weeks">Week 9</div>
+            <div class="tl-title">Go-Live &amp; Training</div>
+            <div class="tl-desc">Staff training session (1–2 hours), QR code printing, soft launch with a single floor, then full rollout.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     INVESTMENT
+═══════════════════════════════════════════════════ -->
+<div class="page" style="padding-top:80px; padding-bottom:60px;">
+  <div class="section-eyebrow">Investment</div>
+  <div class="section-title">Simple, Transparent<br>Pricing</div>
+  <div class="section-body">
+    One setup fee to build everything. One monthly retainer for hosting, maintenance, and updates. No per-cover fees, no transaction cuts, no surprises.
+  </div>
+
+  <div style="display:flex; gap:32px; margin-top:48px; justify-content:center; flex-wrap:wrap;">
+
+    <div style="background:var(--sand); border-radius:16px; padding:36px; width:300px; border:1px solid var(--sand-dark);">
+      <div style="font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:var(--muted);">One-Time Setup</div>
+      <div style="font-family:'Cormorant Garamond',serif; font-size:52px; font-weight:400; color:var(--teal); line-height:1; margin:12px 0 4px;">₹X</div>
+      <div style="font-size:12px; color:var(--muted);">Full platform build &amp; deployment</div>
+      <hr style="border:none; border-top:1px solid var(--sand-dark); margin:20px 0;">
+      <div style="font-size:13px; color:#555; line-height:2;">
+        ✓ WhatsApp automation flows<br>
+        ✓ Staff dashboard (all features)<br>
+        ✓ QR Menu PWA<br>
+        ✓ AI dish chat integration<br>
+        ✓ Staff training session<br>
+        ✓ QR code design &amp; print-ready files
+      </div>
+    </div>
+
+    <div class="pricing-card" style="width:300px;">
+      <div class="pricing-plan">Monthly Retainer</div>
+      <div class="pricing-price">₹Y</div>
+      <div class="pricing-period">per month · after go-live</div>
+      <hr class="pricing-divider">
+      <div class="pricing-item"><span class="pricing-check">✓</span>Hosting &amp; infrastructure (Vercel + Supabase)</div>
+      <div class="pricing-item"><span class="pricing-check">✓</span>WhatsApp API message costs included</div>
+      <div class="pricing-item"><span class="pricing-check">✓</span>Claude AI API costs (dish chat)</div>
+      <div class="pricing-item"><span class="pricing-check">✓</span>Ongoing bug fixes &amp; minor updates</div>
+      <div class="pricing-item"><span class="pricing-check">✓</span>Menu updates (add/remove dishes, pricing)</div>
+      <div class="pricing-item"><span class="pricing-check">✓</span>Priority support via WhatsApp</div>
+      <div class="pricing-note">Pricing is illustrative — exact figures provided in your tailored proposal. No hidden fees, no transaction cuts.</div>
+    </div>
+
+  </div>
+
+  <!-- Comparison -->
+  <div style="margin-top:48px; background:var(--teal-light); border-radius:12px; padding:28px;">
+    <div class="bold teal" style="margin-bottom:16px;">How This Compares to Generic POS / Reservation Software</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
+      <div>
+        <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Generic SaaS (e.g. Dineout, UrbanPiper)</div>
+        <ul style="list-style:none; padding:0; font-size:12px; color:#666; line-height:2;">
+          <li>❌ ₹2,000–8,000/month per module</li>
+          <li>❌ Per-cover / per-order transaction fee</li>
+          <li>❌ Generic UI, not Sanadige-branded</li>
+          <li>❌ Your data lives in their system</li>
+          <li>❌ No AI, no WhatsApp, no custom flows</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Custom Agency Build</div>
+        <ul style="list-style:none; padding:0; font-size:12px; color:#666; line-height:2;">
+          <li>❌ ₹5–15L setup for equivalent scope</li>
+          <li>❌ 6–12 month delivery timelines</li>
+          <li>⚠️ Custom — but often over-engineered</li>
+          <li>⚠️ High ongoing maintenance cost</li>
+          <li>❌ No pre-existing restaurant domain knowledge</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-size:11px; font-weight:700; color:var(--teal); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">This Proposal</div>
+        <ul style="list-style:none; padding:0; font-size:12px; color:#4a6664; line-height:2;">
+          <li>✅ Fixed one-time fee, transparent retainer</li>
+          <li>✅ No per-cover or per-transaction fees</li>
+          <li>✅ Fully custom to Sanadige's brand</li>
+          <li>✅ Your data, your infrastructure</li>
+          <li>✅ AI, WhatsApp, live orders — all included</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     CTA
+═══════════════════════════════════════════════════ -->
+<div class="cta-section">
+  <div style="font-size:32px; margin-bottom:20px;">🪔</div>
+  <div class="cta-title">Ready to Make Every<br>Guest Feel Like a Regular?</div>
+  <div class="cta-subtitle">
+    The food at Sanadige is already exceptional. Let's make sure the experience from first WhatsApp message to the final feedback note is just as memorable.
+  </div>
+  <div>
+    <div class="cta-btn">Let's Get Started</div>
+    <div class="cta-btn secondary">Ask a Question</div>
+  </div>
+  <div class="cta-contact">
+    <div style="margin-bottom:8px;">Prepared by <strong style="color:rgba(255,255,255,0.7);">Harsh Agrawal</strong></div>
+    <div>harshagrawal493@gmail.com</div>
+    <div style="margin-top:24px; font-size:11px; color:rgba(255,255,255,0.2);">Confidential · Prepared exclusively for Sanadige Delhi · April 2026</div>
+  </div>
+</div>
+
+</body>
+</html>

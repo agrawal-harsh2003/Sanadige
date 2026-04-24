@@ -1,14 +1,26 @@
-import Anthropic from '@anthropic-ai/sdk'
-import { anthropic } from '../lib/anthropic'
+import Groq from 'groq-sdk'
+import { groq } from '../lib/anthropic'
 import { supabase } from '../lib/supabase'
 import { toolDefinitions, getTodayCatch, checkFloorAvailability, createBooking, getMenuItemDetail } from '../tools'
 import type { IncomingMessage } from '../webhooks/normalise'
 import type { StaffRole } from './staff'
 
 type HistoryMessage = { role: 'user' | 'assistant'; content: string }
-type APIMessage = Anthropic.MessageParam
+type ChatMessage = Groq.Chat.ChatCompletionMessageParam
 
 export type StaffContext = { name: string; role: StaffRole }
+
+const GROQ_MODEL = 'llama-3.3-70b-versatile'
+
+// Convert Anthropic-format tool definitions to OpenAI/Groq format
+const groqTools: Groq.Chat.ChatCompletionTool[] = toolDefinitions.map(t => ({
+  type: 'function',
+  function: {
+    name: t.name,
+    description: t.description,
+    parameters: t.input_schema,
+  },
+}))
 
 const CUSTOMER_PROMPT = `You are the AI assistant for Sanadige, Delhi's premier coastal seafood restaurant in Chanakyapuri. You help guests with:
 - Today's fresh seafood availability (use get_today_catch tool when asked)
@@ -17,12 +29,6 @@ const CUSTOMER_PROMPT = `You are the AI assistant for Sanadige, Delhi's premier 
 - General questions about the restaurant
 
 Sanadige serves coastal cuisine from Goa, Kerala, Maharashtra, and South Karnataka. The restaurant has 3 floors plus a terrace. Always be warm, knowledgeable, and brief. Never fabricate menu items or availability — always use the provided tools for live data. If asked something outside your scope, politely redirect to reservations, menu, or availability.`
-
-function buildSystemPrompt(_staff: StaffContext | null | undefined): string {
-  // Staff messages are intercepted at the webhook and handled by the interactive menu.
-  // Only customers reach this function.
-  return CUSTOMER_PROMPT
-}
 
 async function getHistory(channel: string, senderId: string): Promise<HistoryMessage[]> {
   const { data, error } = await supabase
@@ -69,58 +75,56 @@ async function executeTool(name: string, input: Record<string, unknown>): Promis
   }
 }
 
-export async function handleMessage(incoming: IncomingMessage, staff?: StaffContext | null): Promise<string> {
+export async function handleMessage(incoming: IncomingMessage, _staff?: StaffContext | null): Promise<string> {
   const history = await getHistory(incoming.channel, incoming.senderId)
 
-  const systemPrompt = buildSystemPrompt(staff)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const systemWithCache = [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }] as any
-
-  // apiMessages holds the full conversation for the Anthropic API (content can be blocks)
-  // historyMessages tracks string-only content for Supabase persistence
-  const apiMessages: APIMessage[] = [
+  const messages: ChatMessage[] = [
+    { role: 'system', content: CUSTOMER_PROMPT },
     ...history.map(m => ({ role: m.role, content: m.content })),
-    { role: 'user' as const, content: incoming.text },
+    { role: 'user', content: incoming.text },
   ]
+
   const historyMessages: HistoryMessage[] = [
     ...history,
     { role: 'user', content: incoming.text },
   ]
 
-  let response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
+  let response = await groq.chat.completions.create({
+    model: GROQ_MODEL,
     max_tokens: 1024,
-    system: systemWithCache,
-    tools: toolDefinitions,
-    messages: apiMessages,
+    tools: groqTools,
+    messages,
   })
 
-  while (response.stop_reason === 'tool_use') {
-    const toolUseBlocks = response.content.filter(
-      (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use'
-    )
+  while (response.choices[0].finish_reason === 'tool_calls') {
+    const assistantMessage = response.choices[0].message
+    const toolCalls = assistantMessage.tool_calls ?? []
+
+    messages.push(assistantMessage)
+
     const toolResults = await Promise.all(
-      toolUseBlocks.map(async (block) => {
-        const result = await executeTool(block.name, block.input as Record<string, unknown>)
-        return { type: 'tool_result' as const, tool_use_id: block.id, content: result }
+      toolCalls.map(async (call) => {
+        const input = JSON.parse(call.function.arguments || '{}') as Record<string, unknown>
+        const result = await executeTool(call.function.name, input)
+        return {
+          role: 'tool' as const,
+          tool_call_id: call.id,
+          content: result,
+        }
       })
     )
 
-    // API accumulator: assistant turn with full content blocks, then tool results as user turn
-    apiMessages.push({ role: 'assistant', content: response.content })
-    apiMessages.push({ role: 'user', content: toolResults })
+    messages.push(...toolResults)
 
-    response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
+    response = await groq.chat.completions.create({
+      model: GROQ_MODEL,
       max_tokens: 1024,
-      system: systemWithCache,
-      tools: toolDefinitions,
-      messages: apiMessages,
+      tools: groqTools,
+      messages,
     })
   }
 
-  const textBlock = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text')
-  const replyText = textBlock ? textBlock.text : 'Sorry, I could not process that. Please try again.'
+  const replyText = response.choices[0].message.content ?? 'Sorry, I could not process that. Please try again.'
 
   await saveHistory(incoming.channel, incoming.senderId, [
     ...historyMessages,

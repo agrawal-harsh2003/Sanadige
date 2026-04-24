@@ -4,6 +4,16 @@ import { useState, useTransition } from 'react'
 import { updateBookingStatus } from '@/actions/bookings'
 import { Button } from '@/components/ui/button'
 
+function formatIST(datetime: string) {
+  const d = new Date(datetime)
+  const ist = new Date(d.getTime() + 5.5 * 60 * 60 * 1000)
+  const h = ist.getUTCHours()
+  const m = ist.getUTCMinutes()
+  const period = h >= 12 ? 'PM' : 'AM'
+  const hour = h % 12 || 12
+  return `${hour.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${period}`
+}
+
 const FLOOR_LABEL: Record<string, string> = {
   terrace: 'Terrace',
   floor1: 'Floor 1',
@@ -75,7 +85,7 @@ export function BookingsTable({ bookings }: { bookings: Booking[] }) {
                 onClick={() => setExpanded(expanded === b.id ? null : b.id)}
               >
                 <td className="px-4 py-3 font-semibold text-foreground">
-                  {new Date(b.datetime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                  {formatIST(b.datetime)}
                 </td>
                 <td className="px-4 py-3 font-medium text-foreground">{b.guest_name}</td>
                 <td className="px-4 py-3 text-foreground">{b.party_size}</td>

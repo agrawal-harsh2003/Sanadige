@@ -1,12 +1,12 @@
 'use client'
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import { createBooking } from '@/actions/bookings'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { DateTimePicker } from '@/components/ui/date-time-picker'
 import {
-  Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger,
+  Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger,
 } from '@/components/ui/drawer'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -24,6 +24,18 @@ export function NewBookingDrawer() {
   const [floor, setFloor] = useState('terrace')
   const [dateTime, setDateTime] = useState<Date | undefined>(undefined)
   const [, startTransition] = useTransition()
+  const formRef = useRef<HTMLFormElement>(null)
+
+  function reset() {
+    setDateTime(undefined)
+    setFloor('terrace')
+    formRef.current?.reset()
+  }
+
+  function handleOpenChange(v: boolean) {
+    setOpen(v)
+    if (!v) reset()
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -38,22 +50,23 @@ export function NewBookingDrawer() {
         floor,
         special_notes: (fd.get('notes') as string) || undefined,
       })
+      reset()
       setOpen(false)
-      setDateTime(undefined)
     })
   }
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
+    <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerTrigger asChild>
         <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">+ New Booking</Button>
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>New Booking</DrawerTitle>
+          <DrawerDescription className="sr-only">Fill in guest details to create a new booking</DrawerDescription>
         </DrawerHeader>
         <div className="overflow-y-auto max-h-[60vh] px-6 pb-6" data-vaul-no-drag>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label className="font-medium">Guest name</Label>
               <Input name="guest_name" required className="mt-1.5" placeholder="Rahul Sharma" />

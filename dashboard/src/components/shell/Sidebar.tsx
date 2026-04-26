@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Fish, CalendarDays, Map, Users, BarChart3 } from 'lucide-react'
+import { LayoutDashboard, CalendarDays, Users } from 'lucide-react'
 import { type Role } from '@/lib/auth'
 
 interface NavItem {
@@ -12,12 +12,9 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { href: '/dashboard', label: 'Mission Control', roles: ['manager'], icon: LayoutDashboard },
-  { href: '/dashboard/catch', label: "Today's Catch", roles: ['manager', 'chef'], icon: Fish },
-  { href: '/dashboard/bookings', label: 'Bookings', roles: ['manager', 'host', 'waiter'], icon: CalendarDays },
-  { href: '/dashboard/floor', label: 'Floor Map', roles: ['manager', 'host', 'waiter'], icon: Map },
-  { href: '/dashboard/staff', label: 'Staff', roles: ['manager'], icon: Users },
-  { href: '/dashboard/analytics', label: 'Analytics', roles: ['manager'], icon: BarChart3 },
+  { href: '/dashboard',          label: 'Mission Control', roles: ['manager'],                           icon: LayoutDashboard },
+  { href: '/dashboard/bookings', label: 'Bookings',        roles: ['manager', 'host', 'waiter', 'chef'], icon: CalendarDays },
+  { href: '/dashboard/guests',   label: 'Guests',          roles: ['manager'],                           icon: Users },
 ]
 
 const ROLE_STYLE: Record<string, string> = {

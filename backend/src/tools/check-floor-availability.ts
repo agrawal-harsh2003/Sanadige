@@ -1,55 +1,56 @@
-import { supabase } from '../lib/supabase'
+import { db } from '../lib/firebase'
 
-// Maximum simultaneous bookings per floor (one booking = one party/table)
 const FLOOR_CAPACITY: Record<string, number> = {
-  terrace: 8,   // 25 seats → ~8 tables
-  floor1: 12,   // 40 seats → ~12 tables
-  floor2: 10,   // 35 seats → ~10 tables
-  private: 1,   // private room → 1 party at a time
+  terrace: 8,
+  floor1: 12,
+  floor2: 10,
+  private: 1,
+}
+
+function normaliseIST(dt: string): string {
+  if (/[+-]\d{2}:\d{2}$/.test(dt) || dt.endsWith('Z')) return dt
+  return dt + '+05:30'
 }
 
 export async function checkFloorAvailability(
   floor: string,
   datetime: string,
-  partySize: number
 ): Promise<string> {
-  const requested = new Date(datetime)
+  const datetimeISO = normaliseIST(datetime)
+  const requested = new Date(datetimeISO)
   const windowStart = new Date(requested.getTime() - 2 * 60 * 60 * 1000).toISOString()
   const windowEnd = new Date(requested.getTime() + 2 * 60 * 60 * 1000).toISOString()
 
-  const { data, error } = await supabase
-    .from('bookings')
-    .select('id')
-    .gte('datetime', windowStart)
-    .lt('datetime', windowEnd)
-    .eq('floor', floor)
-    .eq('status', 'confirmed')
-
-  if (error) throw new Error(`Failed to check availability: ${error.message}`)
+  const snap = await db.collection('bookings')
+    .where('floor', '==', floor)
+    .where('status', 'in', ['confirmed', 'checked_in', 'seated'])
+    .where('datetime', '>=', windowStart)
+    .where('datetime', '<', windowEnd)
+    .get()
 
   const capacity = FLOOR_CAPACITY[floor]
-  if (capacity === undefined) throw new Error(`Unknown floor: ${floor}`)
-  const booked = data?.length ?? 0
+  if (capacity === undefined) return `Unknown floor: ${floor}`
+
+  const booked = snap.size
   const remaining = capacity - booked
 
   if (remaining <= 0) {
     const alternatives = Object.keys(FLOOR_CAPACITY).filter(f => f !== floor).join(', ')
-    return `The ${floor} is fully booked for ${datetime}. Suggest alternative: ${alternatives}.`
+    return `The ${floor} is fully booked for that time. Suggest alternatives: ${alternatives}.`
   }
 
-  return `The ${floor} is available for ${datetime}. ${remaining} table(s) remaining. Party size ${partySize} can be accommodated.`
+  return `The ${floor} is available. ${remaining} table(s) remaining. Proceed with create_booking.`
 }
 
 export const checkFloorAvailabilityDefinition = {
   name: 'check_floor_availability',
-  description: 'Check if a specific floor (terrace, floor1, floor2, private) has availability for a given date, time, and party size. Call this when a customer wants to book a table or asks about seating availability.',
+  description: 'Check if a floor has availability for a given datetime. Always call this just before create_booking.',
   input_schema: {
     type: 'object' as const,
     properties: {
-      floor: { type: 'string', enum: ['terrace', 'floor1', 'floor2', 'private'], description: 'Which floor the guest wants' },
-      datetime: { type: 'string', description: 'ISO 8601 datetime the guest wants to book' },
-      party_size: { type: ['number', 'string'], description: 'Number of guests' },
+      floor: { type: 'string', enum: ['terrace', 'floor1', 'floor2', 'private'], description: 'Which floor the guest chose' },
+      datetime: { type: 'string', description: 'ISO 8601 datetime with IST offset, e.g. 2026-04-25T20:00:00+05:30' },
     },
-    required: ['floor', 'datetime', 'party_size'],
+    required: ['floor', 'datetime'],
   },
 }

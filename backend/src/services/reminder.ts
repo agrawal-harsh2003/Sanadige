@@ -1,9 +1,6 @@
 import cron from 'node-cron'
-import { supabase } from '../lib/supabase'
+import { db } from '../lib/firebase'
 import { sendWhatsAppMessage, sendButtons } from '../lib/whatsapp'
-import { getTodayCatch } from '../tools/get-today-catch'
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
 
 const floorLabel: Record<string, string> = {
   terrace: 'Terrace',
@@ -21,97 +18,67 @@ function fmtTimeIST(isoString: string): string {
   return `${(h % 12 || 12)}:${m.toString().padStart(2, '0')} ${ampm}`
 }
 
-async function getCatchSummary(): Promise<string> {
-  try {
-    const catchText = await getTodayCatch()
-    const lines = catchText.split('\n').slice(1)
-    const available = lines
-      .filter(l => l.includes('available'))
-      .map(l => l.split('(')[0].replace('-', '').trim())
-    return available.length > 0 ? `\n\nTonight's fresh catch: ${available.join(', ')} 🐟` : ''
-  } catch {
-    return ''
-  }
+async function getStaffPhones(roles: string[]): Promise<string[]> {
+  const snap = await db.collection('staff').where('role', 'in', roles).get()
+  return snap.docs.map(d => d.data().phone as string).filter(Boolean)
 }
 
-// ── 2-Hour Booking Reminder to Guest ──────────────────────────────────────────
+// ── 2-Hour Booking Reminder ────────────────────────────────────────────────────
 
 async function sendBookingReminders(): Promise<void> {
   const now = new Date()
   const windowStart = new Date(now.getTime() + 110 * 60 * 1000).toISOString()
-  const windowEnd = new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString()
+  const windowEnd   = new Date(now.getTime() + 120 * 60 * 1000).toISOString()
 
-  const { data: bookings, error } = await supabase
-    .from('bookings')
-    .select('id, booking_ref, guest_name, whatsapp_id, datetime, floor, party_size')
-    .eq('status', 'confirmed')
-    .is('reminder_sent_at', null)
-    .gte('datetime', windowStart)
-    .lt('datetime', windowEnd)
+  const snap = await db.collection('bookings')
+    .where('status', '==', 'confirmed')
+    .where('reminder_sent_at', '==', null)
+    .where('datetime', '>=', windowStart)
+    .where('datetime', '<', windowEnd)
+    .get()
 
-  if (error) {
-    console.error('[reminder] Booking reminder query error:', error.message)
-    return
-  }
-  if (!bookings || bookings.length === 0) return
-
-  const catchSummary = await getCatchSummary()
-
-  for (const booking of bookings) {
-    const localTime = fmtTimeIST(booking.datetime)
+  for (const doc of snap.docs) {
+    const b = doc.data()
+    const localTime = fmtTimeIST(b.datetime)
     const message = [
       `🌊 Your table at *Sanadige* is in 2 hours!`,
       ``,
       `📅 *Tonight · ${localTime}*`,
-      `👥 ${booking.party_size} guests · ${floorLabel[booking.floor] ?? booking.floor}`,
-      `🔖 Ref: ${booking.booking_ref}`,
-      catchSummary,
+      `👥 ${b.party_size} guests · ${floorLabel[b.floor] ?? b.floor}`,
+      `🔖 Ref: ${b.booking_ref}`,
       ``,
       `Need to change or cancel? Reply *cancel* or call us at +91 91678 85275.`,
       `We look forward to seeing you! 🙏`,
     ].join('\n')
 
     try {
-      await sendWhatsAppMessage(booking.whatsapp_id, message)
-      await supabase
-        .from('bookings')
-        .update({ reminder_sent_at: new Date().toISOString() })
-        .eq('id', booking.id)
-      console.log(`[reminder] Reminder sent for ${booking.booking_ref}`)
+      await sendWhatsAppMessage(b.whatsapp_id, message)
+      await doc.ref.update({ reminder_sent_at: new Date().toISOString() })
+      console.log(`[reminder] Reminder sent for ${b.booking_ref}`)
     } catch (err) {
-      console.error(`[reminder] Failed reminder for ${booking.booking_ref}:`, err)
+      console.error(`[reminder] Failed reminder for ${b.booking_ref}:`, err)
     }
   }
 }
 
-// ── Post-Meal Feedback Request ─────────────────────────────────────────────────
+// ── Post-Meal Feedback ─────────────────────────────────────────────────────────
 
 async function sendPostMealFeedback(): Promise<void> {
   const now = new Date()
-  // Target bookings that ended ~1–1.5h ago (assume ~90 min meal duration)
   const windowStart = new Date(now.getTime() - 150 * 60 * 1000).toISOString()
-  const windowEnd = new Date(now.getTime() - 90 * 60 * 1000).toISOString()
+  const windowEnd   = new Date(now.getTime() - 90 * 60 * 1000).toISOString()
 
-  const { data: bookings, error } = await supabase
-    .from('bookings')
-    .select('id, booking_ref, guest_name, whatsapp_id, datetime')
-    .in('status', ['confirmed', 'seated'])
-    .is('feedback_sent_at', null)
-    .gte('datetime', windowStart)
-    .lt('datetime', windowEnd)
+  const snap = await db.collection('bookings')
+    .where('status', 'in', ['confirmed', 'seated'])
+    .where('feedback_sent_at', '==', null)
+    .where('datetime', '>=', windowStart)
+    .where('datetime', '<', windowEnd)
+    .get()
 
-  if (error) {
-    // Column may not exist yet — fail silently
-    if (!error.message.includes('feedback_sent_at')) {
-      console.error('[reminder] Feedback query error:', error.message)
-    }
-    return
-  }
-  if (!bookings || bookings.length === 0) return
-
-  for (const booking of bookings) {
+  for (const doc of snap.docs) {
+    const b = doc.data()
     const message = [
-      `🙏 Thank you for dining with us tonight, *${booking.guest_name}*!`,
+      `🙏 Thank you for dining with us tonight, *${b.guest_name}*!`,
       ``,
       `We hope your meal was everything you hoped for. 🌊`,
       ``,
@@ -119,50 +86,36 @@ async function sendPostMealFeedback(): Promise<void> {
     ].join('\n')
 
     try {
-      await sendButtons(booking.whatsapp_id, message, [
+      await sendButtons(b.whatsapp_id, message, [
         { id: 'fb_excellent', title: '⭐⭐⭐⭐⭐ Exceptional' },
         { id: 'fb_good', title: '⭐⭐⭐⭐ Very Good' },
         { id: 'fb_ok', title: '💬 Leave feedback' },
       ])
-      await supabase
-        .from('bookings')
-        .update({ feedback_sent_at: new Date().toISOString() })
-        .eq('id', booking.id)
-      console.log(`[reminder] Feedback request sent for ${booking.booking_ref}`)
+      await doc.ref.update({ feedback_sent_at: new Date().toISOString() })
+      console.log(`[reminder] Feedback sent for ${b.booking_ref}`)
     } catch (err) {
-      console.error(`[reminder] Failed feedback for ${booking.booking_ref}:`, err)
+      console.error(`[reminder] Failed feedback for ${b.booking_ref}:`, err)
     }
   }
 }
 
-// ── Staff Evening Briefing (sent once at 5 PM IST) ────────────────────────────
+// ── Evening Staff Briefing (5 PM IST = 11:30 UTC) ────────────────────────────
 
 async function sendEveningBriefing(): Promise<void> {
   const today = new Date(Date.now() + 5.5 * 60 * 60 * 1000).toISOString().split('T')[0]
 
-  const [bookingsRes, staffRes] = await Promise.all([
-    supabase
-      .from('bookings')
-      .select('party_size, datetime, floor, status')
-      .gte('datetime', `${today}T00:00:00`)
-      .lte('datetime', `${today}T23:59:59`)
-      .eq('status', 'confirmed'),
-    supabase
-      .from('staff')
-      .select('phone, role')
-      .in('role', ['manager', 'host']),
-  ])
+  const snap = await db.collection('bookings')
+    .where('status', '==', 'confirmed')
+    .where('datetime', '>=', `${today}T00:00:00+05:30`)
+    .where('datetime', '<=', `${today}T23:59:59+05:30`)
+    .get()
 
-  if (bookingsRes.error || !staffRes.data?.length) return
-
-  const bookings = bookingsRes.data ?? []
+  const bookings = snap.docs.map(d => d.data())
   const totalCovers = bookings.reduce((s, b) => s + (b.party_size ?? 0), 0)
-  const catchSummary = await getCatchSummary()
 
-  // Find peak hour
   const hourCounts: Record<number, number> = {}
   bookings.forEach(b => {
-    const h = new Date(b.datetime).getUTCHours() + 5  // rough IST hour
+    const h = new Date(b.datetime).getUTCHours() + 5
     hourCounts[h] = (hourCounts[h] ?? 0) + 1
   })
   const peakHour = Object.entries(hourCounts).sort((a, b) => b[1] - a[1])[0]
@@ -173,30 +126,90 @@ async function sendEveningBriefing(): Promise<void> {
       const count = bookings.filter(b => b.floor === f).length
       return count > 0 ? `${floorLabel[f]}: ${count}` : null
     })
-    .filter(Boolean)
+    .filter((l): l is string => l !== null)
     .join(' · ')
 
   const message = [
     `📊 *Evening Briefing — Tonight*`,
     ``,
     `📅 ${bookings.length} confirmed bookings · ${totalCovers} covers${peakStr}`,
-    floorBreakdown ? `📍 ${floorBreakdown}` : '',
-    catchSummary,
+    floorBreakdown ? `📍 ${floorBreakdown}` : null,
     ``,
     `Dashboard: dashboard.sanadige.in`,
-  ].filter(l => l !== '').join('\n')
+  ].filter((l): l is string => l !== null).join('\n')
 
-  for (const staff of staffRes.data) {
+  const phones = await getStaffPhones(['manager', 'host'])
+  for (const phone of phones) {
     try {
-      await sendWhatsAppMessage(staff.phone, message)
+      await sendWhatsAppMessage(phone, message)
     } catch (err) {
-      console.error(`[reminder] Evening briefing failed for ${staff.phone}:`, err)
+      console.error(`[reminder] Briefing failed for ${phone}:`, err)
     }
   }
-  console.log(`[reminder] Evening briefing sent to ${staffRes.data.length} staff`)
+  console.log(`[reminder] Evening briefing sent to ${phones.length} staff`)
 }
 
-// ── New Booking Staff Alert (called from staff-menu after booking created) ─────
+// ── Auto No-Show (20-min grace) ───────────────────────────────────────────────
+
+async function markNoShows(): Promise<void> {
+  const cutoff = new Date(Date.now() - 20 * 60 * 1000).toISOString()
+
+  const snap = await db.collection('bookings')
+    .where('status', '==', 'confirmed')
+    .where('checked_in_at', '==', null)
+    .where('datetime', '<', cutoff)
+    .get()
+
+  const managerPhones = await getStaffPhones(['manager', 'host'])
+
+  for (const doc of snap.docs) {
+    const b = doc.data()
+    await doc.ref.update({ status: 'no_show', no_show_at: new Date().toISOString() })
+    console.log(`[reminder] No-show: ${b.booking_ref}`)
+
+    const msg = `⚫ No-show: *${b.guest_name}* · ${fmtTimeIST(b.datetime)} · ${floorLabel[b.floor] ?? b.floor}\nRef: ${b.booking_ref}`
+    for (const phone of managerPhones) {
+      sendWhatsAppMessage(phone, msg).catch(() => {})
+    }
+  }
+}
+
+// ── 1-Hour Day-Of Message ─────────────────────────────────────────────────────
+
+async function sendDayOfMessages(): Promise<void> {
+  const now = new Date()
+  const windowStart = new Date(now.getTime() + 50 * 60 * 1000).toISOString()
+  const windowEnd   = new Date(now.getTime() + 70 * 60 * 1000).toISOString()
+
+  const snap = await db.collection('bookings')
+    .where('status', '==', 'confirmed')
+    .where('dayof_sent_at', '==', null)
+    .where('datetime', '>=', windowStart)
+    .where('datetime', '<', windowEnd)
+    .get()
+
+  for (const doc of snap.docs) {
+    const b = doc.data()
+    const time = fmtTimeIST(b.datetime)
+    const message = [
+      `🌊 *Sanadige* — your table is ready for tonight!`,
+      ``,
+      `📅 ${time} · ${floorLabel[b.floor] ?? b.floor}`,
+      `📍 28, Aradhana Enclave, Chanakyapuri, New Delhi`,
+      ``,
+      `We look forward to welcoming you 🙏`,
+    ].join('\n')
+
+    try {
+      await sendWhatsAppMessage(b.whatsapp_id, message)
+      await doc.ref.update({ dayof_sent_at: new Date().toISOString() })
+    } catch (err) {
+      console.error(`[reminder] Day-of failed for ${b.booking_ref}:`, err)
+    }
+  }
+}
+
+// ── Staff Alert Exports ────────────────────────────────────────────────────────
 
 export async function notifyStaffOfBooking(params: {
   guestName: string
@@ -207,13 +220,7 @@ export async function notifyStaffOfBooking(params: {
   ref: string
   createdBy?: string
 }): Promise<void> {
-  const { data: staff } = await supabase
-    .from('staff')
-    .select('phone, role, name')
-    .in('role', ['manager', 'host'])
-
-  if (!staff?.length) return
-
+  const phones = await getStaffPhones(['manager', 'host'])
   const message = [
     `📅 *New Booking Alert*`,
     ``,
@@ -221,19 +228,13 @@ export async function notifyStaffOfBooking(params: {
     `📅 ${params.date} · ${params.time}`,
     `📍 ${floorLabel[params.floor] ?? params.floor}`,
     `🔖 ${params.ref}`,
-    params.createdBy ? `\nAdded by: ${params.createdBy}` : '',
-  ].filter(l => l !== '').join('\n')
+    params.createdBy ? `\nAdded by: ${params.createdBy}` : null,
+  ].filter((l): l is string => l !== null).join('\n')
 
-  for (const member of staff) {
-    try {
-      await sendWhatsAppMessage(member.phone, message)
-    } catch (err) {
-      console.error(`[reminder] Staff booking alert failed for ${member.phone}:`, err)
-    }
+  for (const phone of phones) {
+    sendWhatsAppMessage(phone, message).catch(() => {})
   }
 }
-
-// ── Cancellation Alert ─────────────────────────────────────────────────────────
 
 export async function notifyStaffOfCancellation(params: {
   guestName: string
@@ -241,13 +242,7 @@ export async function notifyStaffOfCancellation(params: {
   floor: string
   ref: string
 }): Promise<void> {
-  const { data: staff } = await supabase
-    .from('staff')
-    .select('phone')
-    .in('role', ['manager', 'host'])
-
-  if (!staff?.length) return
-
+  const phones = await getStaffPhones(['manager', 'host'])
   const message = [
     `⚠️ *Booking Cancelled*`,
     ``,
@@ -257,28 +252,28 @@ export async function notifyStaffOfCancellation(params: {
     `The slot is now free.`,
   ].join('\n')
 
-  for (const member of staff) {
-    sendWhatsAppMessage(member.phone, message).catch(() => {})
+  for (const phone of phones) {
+    sendWhatsAppMessage(phone, message).catch(() => {})
   }
 }
 
 // ── Cron Registration ──────────────────────────────────────────────────────────
 
 export function startReminderJob(): void {
-  // Every 10 min — 2h booking reminders
   cron.schedule('*/10 * * * *', () => {
-    sendBookingReminders().catch(err => console.error('[reminder] Booking reminders failed:', err))
+    sendBookingReminders().catch(err => console.error('[reminder] Reminders failed:', err))
   })
-
-  // Every 30 min — post-meal feedback
   cron.schedule('*/30 * * * *', () => {
-    sendPostMealFeedback().catch(err => console.error('[reminder] Post-meal feedback failed:', err))
+    sendPostMealFeedback().catch(err => console.error('[reminder] Feedback failed:', err))
   })
-
-  // Daily at 5 PM IST (11:30 UTC) — evening staff briefing
   cron.schedule('30 11 * * *', () => {
-    sendEveningBriefing().catch(err => console.error('[reminder] Evening briefing failed:', err))
+    sendEveningBriefing().catch(err => console.error('[reminder] Briefing failed:', err))
   })
-
-  console.log('[reminder] Cron jobs started: booking reminders, post-meal feedback, evening briefing')
+  cron.schedule('* * * * *', () => {
+    markNoShows().catch(err => console.error('[reminder] No-show failed:', err))
+  })
+  cron.schedule('*/10 * * * *', () => {
+    sendDayOfMessages().catch(err => console.error('[reminder] Day-of failed:', err))
+  })
+  console.log('[reminder] Cron jobs started')
 }

@@ -1,92 +1,77 @@
-import { supabase } from '../lib/supabase'
+import { db, adminAuth } from '../lib/firebase'
 import { env } from '../env'
 
 export type StaffRole = 'chef' | 'host' | 'manager' | 'waiter'
 
 export interface StaffMember {
+  id: string
   phone: string
   name: string
   role: StaffRole
+  uid?: string
+}
+
+export async function listStaff(): Promise<StaffMember[]> {
+  const snap = await db.collection('staff').orderBy('name').get()
+  return snap.docs.map(d => ({ id: d.id, ...d.data() } as StaffMember))
 }
 
 export async function getStaff(phone: string): Promise<StaffMember | null> {
-  const { data } = await supabase
-    .from('staff')
-    .select('phone, name, role')
-    .eq('phone', phone)
-    .single()
-  return data ?? null
+  return getStaffByPhone(phone)
 }
 
-// Called on startup — ensures MANAGER_PHONE from env is always in the staff table
+export async function getStaffByPhone(phone: string): Promise<StaffMember | null> {
+  const snap = await db.collection('staff').where('phone', '==', phone).limit(1).get()
+  if (snap.empty) return null
+  return { id: snap.docs[0].id, ...snap.docs[0].data() } as StaffMember
+}
+
+export async function addStaff(params: {
+  phone: string
+  name: string
+  role: StaffRole
+}): Promise<StaffMember> {
+  const e164 = params.phone.startsWith('+') ? params.phone : `+${params.phone}`
+  let uid: string | undefined
+
+  try {
+    const user = await adminAuth.createUser({ phoneNumber: e164, displayName: params.name })
+    uid = user.uid
+    await adminAuth.setCustomUserClaims(uid, { role: params.role, name: params.name })
+  } catch (err: unknown) {
+    if ((err as { code?: string }).code === 'auth/phone-number-already-exists') {
+      try {
+        const existing = await adminAuth.getUserByPhoneNumber(e164)
+        uid = existing.uid
+        await adminAuth.setCustomUserClaims(uid, { role: params.role, name: params.name })
+      } catch {}
+    }
+  }
+
+  const phoneKey = params.phone.startsWith('+') ? params.phone.slice(1) : params.phone
+  const ref = await db.collection('staff').add({ ...params, phone: phoneKey, uid })
+  return { id: ref.id, ...params, phone: phoneKey, uid }
+}
+
+export async function removeStaff(phone: string): Promise<void> {
+  const snap = await db.collection('staff').where('phone', '==', phone).get()
+  for (const doc of snap.docs) {
+    const data = doc.data()
+    if (data.uid) {
+      try { await adminAuth.setCustomUserClaims(data.uid, null) } catch {}
+    }
+    await doc.ref.delete()
+  }
+}
+
 export async function seedManagerFromEnv(): Promise<void> {
-  if (!env.MANAGER_PHONE) return
+  const phone = env.MANAGER_PHONE
+  const name = env.MANAGER_NAME ?? 'Manager'
+  if (!phone) return
 
-  const { error } = await supabase
-    .from('staff')
-    .upsert(
-      { phone: env.MANAGER_PHONE, name: 'Manager', role: 'manager', added_by: 'env' },
-      { onConflict: 'phone', ignoreDuplicates: true }
-    )
+  const existing = await getStaffByPhone(phone)
+  if (existing) return
 
-  if (error) console.error('[staff] Failed to seed manager from env:', error.message)
-  else console.log(`[staff] Manager seeded from env: ${env.MANAGER_PHONE}`)
-}
-
-// Manager WhatsApp commands:
-//   /staff add 919876543210 chef Rajesh
-//   /staff remove 919876543210
-//   /staff list
-export async function handleStaffCommand(text: string, senderPhone: string): Promise<string> {
-  const parts = text.trim().split(/\s+/)
-  const sub = parts[1]?.toLowerCase()
-
-  if (sub === 'list') {
-    const { data, error } = await supabase
-      .from('staff')
-      .select('phone, name, role')
-      .order('role')
-
-    if (error) return 'Failed to fetch staff list.'
-    if (!data || data.length === 0) return 'No staff members registered yet.'
-
-    const lines = data.map((s: StaffMember) => `• ${s.name} (${s.role}) — ${s.phone}`)
-    return `Staff (${data.length}):\n${lines.join('\n')}`
-  }
-
-  if (sub === 'add') {
-    const phone = parts[2]
-    const role = parts[3]?.toLowerCase() as StaffRole | undefined
-    const name = parts.slice(4).join(' ')
-
-    if (!phone || !role || !name) {
-      return 'Usage: /staff add <phone> <chef|host|manager> <name>\nExample: /staff add 919876543210 chef Rajesh'
-    }
-    if (!['chef', 'host', 'manager', 'waiter'].includes(role)) {
-      return 'Role must be one of: chef, host, manager, waiter'
-    }
-
-    const { error } = await supabase
-      .from('staff')
-      .upsert({ phone, name, role, added_by: senderPhone }, { onConflict: 'phone' })
-
-    if (error) return `Failed to add staff: ${error.message}`
-    return `✓ ${name} added as ${role} (${phone})`
-  }
-
-  if (sub === 'remove') {
-    const phone = parts[2]
-    if (!phone) return 'Usage: /staff remove <phone>'
-
-    // Prevent removing the env-seeded manager
-    if (phone === env.MANAGER_PHONE) {
-      return 'Cannot remove the primary manager. Update MANAGER_PHONE in env to change this.'
-    }
-
-    const { error } = await supabase.from('staff').delete().eq('phone', phone)
-    if (error) return `Failed to remove staff: ${error.message}`
-    return `✓ Staff member ${phone} removed`
-  }
-
-  return 'Unknown command. Available: /staff list, /staff add, /staff remove'
+  await addStaff({ phone, name, role: 'manager' })
+  console.log('[staff] Manager seeded from env:', phone)
 }

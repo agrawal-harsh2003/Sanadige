@@ -5,8 +5,6 @@ import { MissionControl } from './_components/MissionControl'
 export default async function DashboardPage() {
   const session = await getSession()
   if (!session) redirect('/login')
-  if (session.role === 'chef') redirect('/dashboard/catch')
-  if (session.role === 'host') redirect('/dashboard/bookings')
-  if (session.role === 'waiter') redirect('/dashboard/bookings')
+  if (session.role !== 'manager') redirect('/dashboard/bookings')
   return <MissionControl />
 }

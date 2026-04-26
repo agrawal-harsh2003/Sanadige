@@ -1,30 +1,33 @@
-import { SignJWT, jwtVerify } from 'jose'
+import { cookies } from 'next/headers'
+import { getAdminAuth } from './firebase-admin'
 
 export type Role = 'manager' | 'chef' | 'host' | 'waiter'
 
-export interface JwtPayload {
+export interface Session {
+  uid: string
   phone: string
   name: string
   role: Role
 }
 
-function getSecret(): Uint8Array {
-  const s = process.env.JWT_SECRET
-  if (!s) throw new Error('JWT_SECRET not set')
-  return new TextEncoder().encode(s)
-}
+export async function getSession(): Promise<Session | null> {
+  const cookieStore = await cookies()
+  const sessionCookie = cookieStore.get('__session')?.value
+  if (!sessionCookie) return null
 
-export async function signJwt(payload: JwtPayload): Promise<string> {
-  return await new SignJWT({ ...payload })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setExpirationTime('12h')
-    .sign(getSecret())
-}
-
-export async function verifyJwt(token: string): Promise<JwtPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, getSecret())
-    return payload as unknown as JwtPayload
+    const adminAuth = getAdminAuth()
+    const decoded = await adminAuth.verifySessionCookie(sessionCookie, true)
+    const claims = decoded as Record<string, unknown>
+
+    if (!claims.role) return null
+
+    return {
+      uid: decoded.uid,
+      phone: (decoded.phone_number as string) ?? '',
+      name: (claims.name as string) ?? '',
+      role: claims.role as Role,
+    }
   } catch {
     return null
   }

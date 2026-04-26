@@ -1,39 +1,70 @@
 'use client'
-import { useState, useTransition } from 'react'
+import { useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Fish } from 'lucide-react'
-import { sendOtp, verifyOtp } from '@/actions/auth'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { getClientAuth } from '@/lib/firebase-client'
+import {
+  signInWithPhoneNumber,
+  RecaptchaVerifier,
+  type ConfirmationResult,
+} from 'firebase/auth'
 
 export default function LoginPage() {
   const [phone, setPhone] = useState('')
-  const [step, setStep] = useState<'phone' | 'otp'>('phone')
   const [otp, setOtp] = useState('')
+  const [step, setStep] = useState<'phone' | 'otp'>('phone')
   const [error, setError] = useState('')
-  const [isPending, startTransition] = useTransition()
+  const [loading, setLoading] = useState(false)
+  const confirmationRef = useRef<ConfirmationResult | null>(null)
+  const recaptchaRef = useRef<RecaptchaVerifier | null>(null)
+  const router = useRouter()
 
-  function handleSendOtp(e: React.FormEvent) {
+  async function sendOtp(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    startTransition(async () => {
-      await sendOtp(phone)
+    setLoading(true)
+    try {
+      const auth = getClientAuth()
+      if (!recaptchaRef.current) {
+        recaptchaRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' })
+      }
+      const digits = phone.replace(/\D/g, '')
+      const e164 = digits.length === 10 ? `+91${digits}` : `+${digits}`
+      const result = await signInWithPhoneNumber(auth, e164, recaptchaRef.current)
+      confirmationRef.current = result
       setStep('otp')
-    })
+    } catch (err: unknown) {
+      setError((err as Error).message ?? 'Failed to send OTP')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  function handleVerifyOtp(e: React.FormEvent) {
+  async function verifyOtp(e: React.FormEvent) {
     e.preventDefault()
+    if (!confirmationRef.current) return
     setError('')
-    startTransition(async () => {
-      const result = await verifyOtp(phone, otp)
-      if (result?.error) setError(result.error)
-    })
+    setLoading(true)
+    try {
+      const result = await confirmationRef.current.confirm(otp)
+      const idToken = await result.user.getIdToken()
+      const res = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      })
+      if (!res.ok) throw new Error('Session creation failed — you may not be registered as staff')
+      router.push('/dashboard')
+    } catch (err: unknown) {
+      setError((err as Error).message ?? 'Invalid OTP')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="min-h-screen flex">
-      {/* Left panel — brand */}
+      {/* Left panel */}
       <div className="hidden md:flex flex-col justify-between w-1/2 bg-sidebar px-12 py-14">
         <div>
           <p className="text-sidebar-foreground font-bold text-3xl tracking-tight">Sanadige</p>
@@ -43,16 +74,14 @@ export default function LoginPage() {
           <p className="text-sidebar-foreground/80 text-lg font-medium leading-snug">
             Fresh from the coast.<br />Served with precision.
           </p>
-          <p className="text-sidebar-foreground/40 text-sm">
-            Staff operations portal — bookings, catch, floor, and more.
-          </p>
+          <p className="text-sidebar-foreground/40 text-sm">Staff operations portal</p>
         </div>
         <svg viewBox="0 0 400 60" className="opacity-10 -mx-12" fill="currentColor">
           <path d="M0,30 C50,10 100,50 150,30 C200,10 250,50 300,30 C350,10 400,50 450,30 L450,60 L0,60 Z" />
         </svg>
       </div>
 
-      {/* Right panel — form */}
+      {/* Right panel */}
       <div className="flex-1 flex items-center justify-center bg-background px-6">
         <div className="w-full max-w-sm">
           <div className="bg-card rounded-2xl shadow-lg ring-1 ring-black/5 p-8">
@@ -61,52 +90,63 @@ export default function LoginPage() {
                 <Fish size={28} className="text-accent-foreground" />
               </div>
               <h1 className="text-2xl font-bold text-foreground">Staff Sign In</h1>
-              <p className="text-sm text-muted-foreground mt-1">Enter your WhatsApp number to continue</p>
+              <p className="text-sm text-muted-foreground mt-1">Enter your phone number to receive an OTP</p>
             </div>
 
+            <div id="recaptcha-container" />
+
             {step === 'phone' ? (
-              <form onSubmit={handleSendOtp} className="space-y-5">
+              <form onSubmit={sendOtp} className="space-y-5">
                 <div>
-                  <Label htmlFor="phone" className="text-foreground font-medium">WhatsApp number</Label>
-                  <Input
-                    id="phone"
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Phone number</label>
+                  <input
                     type="tel"
-                    placeholder="+91 98765 43210"
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
+                    placeholder="+91 98765 43210"
                     required
-                    className="mt-1.5"
+                    className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-11" disabled={isPending}>
-                  {isPending ? 'Sending…' : 'Send OTP via WhatsApp'}
-                </Button>
+                {error && <p className="text-sm text-destructive">{error}</p>}
+                <button
+                  type="submit"
+                  disabled={loading || !phone}
+                  className="w-full h-11 bg-primary text-primary-foreground rounded-lg text-sm font-semibold disabled:opacity-50"
+                >
+                  {loading ? 'Sending…' : 'Send OTP'}
+                </button>
               </form>
             ) : (
-              <form onSubmit={handleVerifyOtp} className="space-y-5">
-                <p className="text-sm text-muted-foreground text-center">OTP sent to <span className="font-medium text-foreground">{phone}</span></p>
+              <form onSubmit={verifyOtp} className="space-y-5">
+                <p className="text-sm text-muted-foreground text-center">
+                  OTP sent to <span className="font-medium text-foreground">{phone}</span>
+                </p>
                 <div>
-                  <Label htmlFor="otp" className="text-foreground font-medium">6-digit OTP</Label>
-                  <Input
-                    id="otp"
+                  <label className="block text-sm font-medium text-foreground mb-1.5">6-digit OTP</label>
+                  <input
                     type="text"
                     inputMode="numeric"
-                    maxLength={6}
-                    placeholder="• • • • • •"
                     value={otp}
                     onChange={e => setOtp(e.target.value)}
+                    placeholder="• • • • • •"
+                    maxLength={6}
                     required
-                    className="mt-1.5 tracking-[0.5em] text-center text-lg font-bold"
+                    className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm text-center tracking-[0.5em] font-bold focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
-                {error && <p className="text-sm text-destructive text-center">{error}</p>}
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-11" disabled={isPending}>
-                  {isPending ? 'Verifying…' : 'Verify & Sign In'}
-                </Button>
+                {error && <p className="text-sm text-destructive">{error}</p>}
+                <button
+                  type="submit"
+                  disabled={loading || otp.length < 6}
+                  className="w-full h-11 bg-primary text-primary-foreground rounded-lg text-sm font-semibold disabled:opacity-50"
+                >
+                  {loading ? 'Verifying…' : 'Verify & Sign In'}
+                </button>
                 <button
                   type="button"
-                  className="text-sm text-muted-foreground hover:text-primary underline w-full text-center transition-colors"
                   onClick={() => setStep('phone')}
+                  className="w-full text-sm text-muted-foreground hover:text-primary underline text-center"
                 >
                   Use a different number
                 </button>

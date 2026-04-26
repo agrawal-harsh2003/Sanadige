@@ -1,7 +1,7 @@
 import { StaffMember } from './staff'
 import { IncomingMessage } from '../webhooks/normalise'
 import { sendWhatsAppMessage, sendButtons, sendList, sendBookingConfirmationTemplate } from '../lib/whatsapp'
-import { supabase } from '../lib/supabase'
+import { db } from '../lib/firebase'
 import { env } from '../env'
 import { notifyStaffOfBooking } from './reminder'
 
@@ -48,10 +48,6 @@ function fmtDate(isoDate: string): string {
   })
 }
 
-function statusLabel(s: string): string {
-  return s === 'available' ? '✅ Available' : s === 'sold_out' ? '❌ Sold Out' : '🔜 Tomorrow'
-}
-
 function floorLabel(f: string): string {
   const map: Record<string, string> = { terrace: 'Terrace', floor1: 'Floor 1', floor2: 'Floor 2', private: 'Private Room' }
   return map[f] ?? f
@@ -73,8 +69,6 @@ export async function handleStaffMenu(msg: IncomingMessage, staff: StaffMember):
   try {
     switch (session.step) {
       case 'idle':           return handleIdle(msg, id, staff)
-      case 'catch_item':     return handleCatchItem(msg, id, session, staff)
-      case 'catch_status':   return handleCatchStatus(msg, id, session, staff)
       case 'staff_sub':      return handleStaffSub(msg, id, staff)
       case 'staff_add_role': return handleAddRole(msg, id, session, staff)
       case 'staff_add_name': return handleAddName(msg, session, staff)
@@ -108,7 +102,7 @@ async function showMainMenu(to: string, staff: StaffMember): Promise<void> {
 
   if (staff.role === 'chef') {
     return sendButtons(to, `${greet}\n\nWhat would you like to do?`, [
-      { id: 'main_catch', title: 'Update Catch' },
+      { id: 'main_bookings', title: 'View Bookings' },
       { id: 'main_help', title: 'Help & Guide' },
     ])
   }
@@ -132,7 +126,6 @@ async function showMainMenu(to: string, staff: StaffMember): Promise<void> {
     {
       title: 'Operations',
       rows: [
-        { id: 'main_catch', title: "Today's Catch", description: 'Update fish availability' },
         { id: 'main_bookings', title: 'Bookings', description: 'View or create bookings' },
         { id: 'main_staff', title: 'Staff', description: 'Add, remove, or view staff' },
       ],
@@ -145,7 +138,6 @@ async function showMainMenu(to: string, staff: StaffMember): Promise<void> {
 }
 
 async function handleIdle(msg: IncomingMessage, id: string, staff: StaffMember): Promise<void> {
-  if (id === 'main_catch') return showCatchList(msg.senderId, staff)
   if (id === 'main_bookings') return showBookingsSub(msg.senderId, staff)
   if (id === 'bk_view') return viewBookings(msg.senderId, staff)
   if (id === 'bk_create') return startBooking(msg.senderId)
@@ -161,105 +153,14 @@ async function handleIdle(msg: IncomingMessage, id: string, staff: StaffMember):
 
 async function showHelp(to: string, staff: StaffMember): Promise<void> {
   const guide: Record<string, string> = {
-    waiter: `📖 *Waiter Guide*\n\n*View bookings:*\nTap "View Bookings" → "View Today" to see tonight's reservations — guest name, table, party size, and time.\n\n*Taking an order:*\nUse the QR menu orders board on the dashboard to see incoming orders and update their status.\n\n*Status colours (dashboard):*\n🟡 Confirmed — guest not yet arrived\n🟢 Seated — guest is at the table\n\n*Dashboard:* dashboard.sanadige.in\n\nType *menu* anytime to come back here.`,
-    chef: `📖 *Chef Guide*\n\n*Update today's catch:*\nTap "Update Catch" → choose a fish from the list → choose its status:\n✅ Available — in stock today\n❌ Sold Out — ran out\n🔜 Tomorrow — arriving tomorrow\n\nYou can update the same fish multiple times a day.\n\n*Dashboard:* dashboard.sanadige.in\n\nType *menu* anytime to come back here.`,
-    host: `📖 *Host Guide*\n\n*View bookings:*\nTap "Bookings" → "View Today" to see all bookings.\n\n*Create a booking:*\nTap "Bookings" → "New Booking" and follow the steps — guest name, phone, party size, date, time, and area.\n\n*Status colours (dashboard):*\n🟡 Confirmed — not yet arrived\n🟢 Seated — guest is at the table\n🔴 Cancelled\n\n*Dashboard:* dashboard.sanadige.in (full floor map + booking management)\n\nType *menu* anytime to come back here.`,
-    manager: `📖 *Manager Guide*\n\n*Today's Catch:* Mark fish available, sold out, or arriving tomorrow.\n\n*Bookings:* View today's bookings or create a new one step by step.\n\n*Staff:*\n• Add Staff — pick a role, enter name + number. They'll get an automatic welcome message.\n• Remove Staff — choose from the team list and confirm.\n• View Staff — full team roster.\n\n*Dashboard:* dashboard.sanadige.in — Mission Control, analytics, floor map, full management UI.\n\nType *menu* anytime to come back here.`,
+    waiter: `📖 *Waiter Guide*\n\n*View bookings:*\nTap "View Bookings" → "View Today" to see tonight's reservations — guest name, table, party size, and time.\n\n*Status colours:*\n🟡 Confirmed — guest not yet arrived\n🟢 Seated — guest is at the table\n\n*Dashboard:* dashboard.sanadige.in\n\nType *menu* anytime to come back here.`,
+    chef: `📖 *Chef Guide*\n\n*View bookings:*\nTap "View Bookings" to see today's reservations — covers, timing, and seating area.\n\n*Dashboard:* dashboard.sanadige.in\n\nType *menu* anytime to come back here.`,
+    host: `📖 *Host Guide*\n\n*View bookings:*\nTap "Bookings" → "View Today" to see all bookings.\n\n*Create a booking:*\nTap "Bookings" → "New Booking" and follow the steps — guest name, phone, party size, date, time, and area.\n\n*Status colours:*\n🟡 Confirmed — not yet arrived\n🟢 Seated — guest is at the table\n🔴 Cancelled\n\n*Dashboard:* dashboard.sanadige.in\n\nType *menu* anytime to come back here.`,
+    manager: `📖 *Manager Guide*\n\n*Bookings:* View today's bookings or create a new one step by step.\n\n*Staff:*\n• Add Staff — pick a role, enter name + number. They'll get an automatic welcome message.\n• Remove Staff — choose from the team list and confirm.\n• View Staff — full team roster.\n\n*Dashboard:* dashboard.sanadige.in — Mission Control, bookings management, full UI.\n\nType *menu* anytime to come back here.`,
   }
 
   await sendWhatsAppMessage(to, guide[staff.role])
   return sendButtons(to, 'What would you like to do?', [{ id: 'back_main', title: 'Main Menu' }])
-}
-
-// ── Catch ─────────────────────────────────────────────────────────────────────
-
-async function showCatchList(to: string, staff: StaffMember): Promise<void> {
-  const today = istDate()
-  const [itemsRes, availRes] = await Promise.all([
-    supabase.from('catch_items').select('id, name').order('name'),
-    supabase.from('daily_availability').select('catch_item_id, status').eq('date', today),
-  ])
-
-  const items = itemsRes.data ?? []
-  if (items.length === 0) {
-    await sendWhatsAppMessage(to, 'No items in the catalogue. Add fish via the dashboard first.')
-    reset(to)
-    return sendButtons(to, 'What would you like to do?', [{ id: 'back_main', title: 'Main Menu' }])
-  }
-
-  const statusMap = new Map((availRes.data ?? []).map(a => [a.catch_item_id, a.status as string]))
-
-  advance(to, 'catch_item')
-  return sendList(to, `🐟 *Today's Catch*\n\nSelect a fish to update its status:`, 'Choose Fish', [{
-    title: 'Catalogue',
-    rows: items.slice(0, 10).map(item => ({
-      id: `ci_${item.id}`,
-      title: item.name.slice(0, 24),
-      description: statusMap.has(item.id) ? statusLabel(statusMap.get(item.id)!) : 'Not set today',
-    })),
-  }])
-}
-
-async function handleCatchItem(
-  msg: IncomingMessage, id: string, _session: Session, staff: StaffMember
-): Promise<void> {
-  if (!id.startsWith('ci_')) {
-    await sendWhatsAppMessage(msg.senderId, '⚠️ Please choose a fish from the list.')
-    return showCatchList(msg.senderId, staff)
-  }
-
-  const catchItemId = id.replace('ci_', '')
-  const { data } = await supabase.from('catch_items').select('name').eq('id', catchItemId).single()
-  if (!data) {
-    await sendWhatsAppMessage(msg.senderId, '❌ Fish not found.')
-    return showCatchList(msg.senderId, staff)
-  }
-
-  advance(msg.senderId, 'catch_status', { catchItemId, catchItemName: data.name })
-  return sendButtons(msg.senderId,
-    `*${data.name}*\n\nWhat is its status today?`,
-    [
-      { id: 'cs_available', title: 'Available' },
-      { id: 'cs_sold_out', title: 'Sold Out' },
-      { id: 'cs_tomorrow', title: 'Tomorrow' },
-    ]
-  )
-}
-
-async function handleCatchStatus(
-  msg: IncomingMessage, id: string, session: Session, staff: StaffMember
-): Promise<void> {
-  const map: Record<string, string> = { cs_available: 'available', cs_sold_out: 'sold_out', cs_tomorrow: 'tomorrow' }
-  const status = map[id]
-  if (!status) {
-    return sendButtons(msg.senderId,
-      `*${session.data.catchItemName}* — choose status:`,
-      [
-        { id: 'cs_available', title: 'Available' },
-        { id: 'cs_sold_out', title: 'Sold Out' },
-        { id: 'cs_tomorrow', title: 'Tomorrow' },
-      ]
-    )
-  }
-
-  const { error } = await supabase.from('daily_availability').upsert(
-    {
-      catch_item_id: session.data.catchItemId,
-      date: istDate(),
-      status,
-      updated_by: msg.senderId,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'catch_item_id,date' }
-  )
-  if (error) throw error
-
-  await sendWhatsAppMessage(msg.senderId, `✓ *${session.data.catchItemName}* → ${statusLabel(status)}`)
-  reset(msg.senderId)
-  return sendButtons(msg.senderId, 'What next?', [
-    { id: 'main_catch', title: 'Update Another' },
-    { id: 'back_main', title: 'Main Menu' },
-  ])
 }
 
 // ── Staff ─────────────────────────────────────────────────────────────────────
@@ -282,8 +183,9 @@ async function handleStaffSub(msg: IncomingMessage, id: string, staff: StaffMemb
 
 // View
 async function showStaffView(to: string, staff: StaffMember): Promise<void> {
-  const { data } = await supabase.from('staff').select('name, role, phone').order('role')
-  if (!data || data.length === 0) {
+  const snap = await db.collection('staff').orderBy('role').get()
+  const data = snap.docs.map(d => d.data())
+  if (data.length === 0) {
     await sendWhatsAppMessage(to, 'No staff registered yet.')
   } else {
     const icon: Record<string, string> = { manager: '👔', chef: '👨‍🍳', host: '🙋', waiter: '🍽️' }
@@ -353,10 +255,13 @@ async function handleAddPhone(msg: IncomingMessage, session: Session, staff: Sta
   }
 
   const { newName, newRole } = session.data
-  const { error } = await supabase
-    .from('staff')
-    .upsert({ phone, name: newName, role: newRole, added_by: msg.senderId }, { onConflict: 'phone' })
-  if (error) throw error
+  // Upsert: check if phone already exists, update or insert
+  const existingSnap = await db.collection('staff').where('phone', '==', phone).limit(1).get()
+  if (!existingSnap.empty) {
+    await existingSnap.docs[0].ref.update({ name: newName, role: newRole })
+  } else {
+    await db.collection('staff').add({ phone, name: newName, role: newRole })
+  }
 
   await sendWhatsAppMessage(msg.senderId, `✅ *${newName}* added as *${newRole}*.`)
 
@@ -382,8 +287,8 @@ async function handleAddPhone(msg: IncomingMessage, session: Session, staff: Sta
 
 // Remove — step 1: pick person
 async function startRemoveStaff(to: string): Promise<void> {
-  const { data } = await supabase.from('staff').select('phone, name, role').order('role')
-  const removable = (data ?? []).filter(s => s.phone !== env.MANAGER_PHONE)
+  const snap = await db.collection('staff').orderBy('role').get()
+  const removable = snap.docs.map(d => d.data()).filter(s => s.phone !== env.MANAGER_PHONE)
 
   if (removable.length === 0) {
     await sendWhatsAppMessage(to, 'No staff to remove (the primary manager cannot be removed).')
@@ -411,15 +316,16 @@ async function handleRemovePick(
   }
 
   const phone = id.replace('rem_', '')
-  const { data } = await supabase.from('staff').select('name, role').eq('phone', phone).single()
-  if (!data) {
+  const staffSnap = await db.collection('staff').where('phone', '==', phone).limit(1).get()
+  if (staffSnap.empty) {
     await sendWhatsAppMessage(msg.senderId, '❌ Staff member not found.')
     return startRemoveStaff(msg.senderId)
   }
+  const staffData = staffSnap.docs[0].data()
 
-  advance(msg.senderId, 'staff_rem_ok', { removePhone: phone, removeName: data.name, removeRole: data.role })
+  advance(msg.senderId, 'staff_rem_ok', { removePhone: phone, removeName: staffData.name, removeRole: staffData.role })
   return sendButtons(msg.senderId,
-    `Remove *${data.name}* (${data.role}) from the team?\n\nThis cannot be undone.`,
+    `Remove *${staffData.name}* (${staffData.role}) from the team?\n\nThis cannot be undone.`,
     [
       { id: 'rem_yes', title: 'Yes, Remove' },
       { id: 'rem_cancel', title: 'Cancel' },
@@ -442,8 +348,8 @@ async function handleRemoveOk(
     )
   }
 
-  const { error } = await supabase.from('staff').delete().eq('phone', session.data.removePhone)
-  if (error) throw error
+  const toRemove = await db.collection('staff').where('phone', '==', session.data.removePhone).get()
+  for (const doc of toRemove.docs) await doc.ref.delete()
 
   await sendWhatsAppMessage(msg.senderId, `✅ *${session.data.removeName}* has been removed.`)
   reset(msg.senderId)
@@ -473,14 +379,14 @@ async function handleBookSub(
 
 async function viewBookings(to: string, staff: StaffMember): Promise<void> {
   const today = istDate()
-  const { data } = await supabase
-    .from('bookings')
-    .select('booking_ref, guest_name, party_size, datetime, floor, status')
-    .gte('datetime', `${today}T00:00:00`)
-    .lte('datetime', `${today}T23:59:59`)
-    .order('datetime')
+  const snap = await db.collection('bookings')
+    .where('datetime', '>=', `${today}T00:00:00`)
+    .where('datetime', '<=', `${today}T23:59:59`)
+    .orderBy('datetime')
+    .get()
+  const data = snap.docs.map(d => d.data())
 
-  if (!data || data.length === 0) {
+  if (data.length === 0) {
     await sendWhatsAppMessage(to, '📋 No bookings for today yet.')
   } else {
     const icon: Record<string, string> = { confirmed: '🟡', seated: '🟢', cancelled: '🔴', no_show: '⚫' }
@@ -715,17 +621,24 @@ async function handleBookConfirm(
   const { bkName, bkPhone, bkParty, bkDate, bkTime, bkFloor } = session.data
   const bookingRef = generateRef()
 
-  const { error } = await supabase.from('bookings').insert({
+  await db.collection('bookings').add({
     booking_ref: bookingRef,
     guest_name: bkName,
     phone: bkPhone,
     whatsapp_id: bkPhone,
     party_size: parseInt(bkParty),
-    datetime: `${bkDate}T${bkTime}:00`,
+    datetime: `${bkDate}T${bkTime}:00+05:30`,
     floor: bkFloor,
     status: 'confirmed',
+    channel: 'phone',
+    reminder_sent_at: null,
+    dayof_sent_at: null,
+    feedback_sent_at: null,
+    checked_in_at: null,
+    completed_at: null,
+    no_show_at: null,
+    created_at: new Date().toISOString(),
   })
-  if (error) throw error
 
   const dispDate = fmtDate(bkDate)
   const dispTime = fmtTime(bkTime)

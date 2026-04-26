@@ -1,5 +1,5 @@
 import { logout } from '@/actions/auth'
-import { type JwtPayload } from '@/lib/auth'
+import { type Session } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 
 const ROLE_BADGE: Record<string, string> = {
@@ -8,7 +8,7 @@ const ROLE_BADGE: Record<string, string> = {
   host: 'bg-primary/10 text-primary ring-1 ring-primary/20',
 }
 
-export function Topbar({ session }: { session: JwtPayload }) {
+export function Topbar({ session }: { session: Session }) {
   return (
     <header className="h-14 border-b border-border bg-card shadow-sm flex items-center justify-between px-6">
       <div />

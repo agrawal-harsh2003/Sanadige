@@ -1,42 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyJwt } from '@/lib/auth'
 
 const ROLE_DEFAULTS: Record<string, string> = {
   manager: '/dashboard',
-  chef: '/dashboard/catch',
-  host: '/dashboard/bookings',
+  chef:    '/dashboard/bookings',
+  host:    '/dashboard/bookings',
+  waiter:  '/dashboard/bookings',
 }
 
 const ROLE_ACCESS: Record<string, string[]> = {
-  '/dashboard': ['manager'],
-  '/dashboard/catch': ['manager', 'chef'],
-  '/dashboard/bookings': ['manager', 'host'],
-  '/dashboard/floor': ['manager', 'host'],
-  '/dashboard/staff': ['manager'],
-  '/dashboard/analytics': ['manager'],
+  '/dashboard':        ['manager'],
+  '/dashboard/guests': ['manager'],
+  '/dashboard/bookings': ['manager', 'host', 'waiter', 'chef'],
 }
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  if (pathname === '/login' || pathname === '/') {
+  if (pathname === '/login' || pathname === '/' || pathname.startsWith('/api')) {
     return NextResponse.next()
   }
 
-  const token = req.cookies.get('snd_session')?.value
-  if (!token) {
+  const sessionCookie = req.cookies.get('__session')?.value
+  if (!sessionCookie) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  const payload = await verifyJwt(token)
-  if (!payload) {
-    return NextResponse.redirect(new URL('/login', req.url))
-  }
-
+  // Lightweight check — full verification happens in getSession() within pages
+  // Just ensure cookie exists; server components re-verify with adminAuth
   const allowed = ROLE_ACCESS[pathname]
-  if (allowed && !allowed.includes(payload.role)) {
-    return NextResponse.redirect(new URL(ROLE_DEFAULTS[payload.role], req.url))
-  }
+  if (!allowed) return NextResponse.next()
 
   return NextResponse.next()
 }

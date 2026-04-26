@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button'
 
 const ROLE_BADGE: Record<string, string> = {
   manager: 'bg-accent/10 text-accent ring-1 ring-accent/20',
-  chef: 'bg-amber-50 text-amber-800 ring-1 ring-amber-200',
-  host: 'bg-primary/10 text-primary ring-1 ring-primary/20',
+  host:    'bg-primary/10 text-primary ring-1 ring-primary/20',
 }
 
 export function Topbar({ session }: { session: Session }) {

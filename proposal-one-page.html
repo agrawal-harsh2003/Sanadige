@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sanadige — Reservation System Proposal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --teal:  #1a3a38;
+    --terra: #c4683a;
+    --sand:  #f8f3ec;
+    --muted: #8a7f75;
+    --text:  #2c2925;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #fff;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 44px 52px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--teal);
+  }
+  .wordmark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 300;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    color: var(--teal);
+    line-height: 1;
+  }
+  .tagline { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+  .doc-label {
+    text-align: right;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    line-height: 1.8;
+  }
+  .doc-label strong { color: var(--teal); font-size: 13px; display: block; letter-spacing: 0; }
+
+  /* Section label */
+  .label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--terra);
+    margin-bottom: 6px;
+  }
+
+  /* What it is */
+  .intro-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--teal);
+    line-height: 1.4;
+    max-width: 560px;
+  }
+  .intro-sub {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.7;
+    margin-top: 8px;
+    max-width: 560px;
+  }
+
+  /* Two column layout */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* Feature list */
+  .feature-block { background: var(--sand); border-radius: 8px; padding: 14px 16px; }
+  .feature-block .title { font-weight: 600; color: var(--teal); font-size: 12px; margin-bottom: 4px; }
+  .feature-block .desc { font-size: 11px; color: #666; line-height: 1.6; }
+
+  /* Journey row */
+  .journey {
+    background: var(--teal);
+    border-radius: 10px;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow: hidden;
+  }
+  .journey-step {
+    flex: 1;
+    text-align: center;
+    padding: 0 10px;
+    position: relative;
+  }
+  .journey-step:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,0.3);
+    font-size: 12px;
+  }
+  .journey-step .step-icon { font-size: 16px; display: block; margin-bottom: 4px; }
+  .journey-step .step-label { font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 0.5px; display: block; }
+  .journey-step .step-sub { font-size: 9px; color: rgba(255,255,255,0.45); display: block; margin-top: 2px; line-height: 1.4; }
+
+  /* Pricing */
+  .pricing-wrap { display: grid; grid-template-columns: 220px 1fr; gap: 20px; align-items: start; }
+  .price-card {
+    background: var(--teal);
+    border-radius: 12px;
+    padding: 24px;
+    color: #fff;
+  }
+  .price-amount {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 52px;
+    font-weight: 400;
+    line-height: 1;
+    color: #fff;
+    margin: 8px 0 4px;
+  }
+  .price-sub { font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 16px; }
+  .price-items { font-size: 11px; color: rgba(255,255,255,0.75); line-height: 2; }
+  .price-terms {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    font-size: 10px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.7;
+  }
+
+  .retainer-block { display: flex; flex-direction: column; gap: 10px; }
+  .retainer-row {
+    background: var(--sand);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .retainer-row.highlight { background: #e8f0ef; border: 1.5px solid #2d5c58; }
+  .retainer-name { font-weight: 600; color: var(--teal); font-size: 12px; }
+  .retainer-desc { font-size: 10px; color: #777; margin-top: 2px; line-height: 1.5; }
+  .retainer-price { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--teal); white-space: nowrap; }
+  .retainer-per { font-size: 10px; color: var(--muted); font-family: 'Inter', sans-serif; }
+  .popular-badge { font-size: 8px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; background: var(--terra); color: #fff; padding: 2px 7px; border-radius: 10px; margin-left: 8px; }
+
+  /* Footer */
+  .footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid #e5e0d8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-name { font-weight: 600; color: var(--teal); font-size: 12px; }
+  .footer-contact { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .footer-date { font-size: 10px; color: #ccc; letter-spacing: 1px; text-align: right; }
+
+  @media print {
+    body { background: #fff; }
+    .page { padding: 32px 44px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="wordmark">Sanadige</div>
+      <div class="tagline">New Delhi · Fine Dining</div>
+    </div>
+    <div class="doc-label">
+      <strong>Reservation System Proposal</strong>
+      Prepared by Harsh Agrawal<br>
+      April 2026 · Confidential
+    </div>
+  </div>
+
+  <!-- What it is -->
+  <div>
+    <div class="label">The System</div>
+    <div class="intro-text">A complete reservation platform — from the moment a guest decides to book to the moment they walk out the door.</div>
+    <div class="intro-sub">Every booking channel (WhatsApp, website, phone) feeds one system. Guest profiles build automatically. Reminders, no-show enforcement, and marketing campaigns run without any manual action from staff.</div>
+  </div>
+
+  <!-- Guest journey -->
+  <div>
+    <div class="label">Guest Journey — Fully Automated</div>
+    <div class="journey">
+      <div class="journey-step">
+        <span class="step-icon">💬</span>
+        <span class="step-label">Books</span>
+        <span class="step-sub">WhatsApp, website, or phone</span>
+      </div>
+      <div class="journey-step">
+        <span class="step-icon">✅</span>
+        <span class="step-label">Confirmed</span>
+        <span class="step-sub">Deposit collected, WA confirmation sent</span>
+      </div>
+      <div class="journey-step">
+        <span class="step-icon">⏰</span>
+        <span class="step-label">Reminded</span>
+        <span class="step-sub">2h before + day-of arrival message</span>
+      </div>
+      <div class="journey-step">
+        <span class="step-icon">🟢</span>
+        <span class="step-label">Arrives</span>
+        <span class="step-sub">Host taps Check In, table assigned</span>
+      </div>
+      <div class="journey-step">
+        <span class="step-icon">🏁</span>
+        <span class="step-label">Leaves</span>
+        <span class="step-sub">Profile updated, feedback sent</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- What's included -->
+  <div>
+    <div class="label">What's Included</div>
+    <div class="three-col">
+      <div class="feature-block">
+        <div class="title">💬 WhatsApp AI Booking</div>
+        <div class="desc">Guests message naturally. AI finds a slot, confirms the booking, sends the deposit link — no staff needed.</div>
+      </div>
+      <div class="feature-block">
+        <div class="title">🌐 Website Booking Portal</div>
+        <div class="desc">Live availability on sanadige.in/book. Razorpay deposit at checkout. Booking appears in dashboard instantly.</div>
+      </div>
+      <div class="feature-block">
+        <div class="title">📊 Staff Dashboard</div>
+        <div class="desc">Manager and Host view. 8-state reservation lifecycle. Real-time floor status. Phone OTP login, no passwords.</div>
+      </div>
+      <div class="feature-block">
+        <div class="title">🗺️ Floor Map & Check-In</div>
+        <div class="desc">Live colour-coded table map. Upcoming arrivals panel. One-tap check-in. Walk-in intake with best slot suggestion.</div>
+      </div>
+      <div class="feature-block">
+        <div class="title">👤 Guest CRM</div>
+        <div class="desc">Auto-created profiles: visit count, dietary notes, occasions, seating preferences, tier (Standard / Preferred / VIP).</div>
+      </div>
+      <div class="feature-block">
+        <div class="title">🎯 Marketing Campaigns</div>
+        <div class="desc">Lapsed guest outreach, birthday invites, milestone messages. Manager sends targeted WhatsApp blasts by segment.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Business rules strip -->
+  <div style="background:var(--sand); border-radius:8px; padding:14px 20px; display:flex; gap:32px; flex-wrap:wrap;">
+    <div class="label" style="margin:0; align-self:center; white-space:nowrap;">Policy — Enforced Automatically</div>
+    <div style="font-size:11px; color:#555; display:flex; gap:24px; flex-wrap:wrap;">
+      <span>💰 <strong>Deposit:</strong> ₹500/cover dinner · ₹250 lunch</span>
+      <span>🔄 <strong>Cancel 24h+:</strong> full refund · 4–24h: 50% · under 4h: none</span>
+      <span>👻 <strong>No-show:</strong> auto-marked at 20 min, deposit captured</span>
+      <span>🪑 <strong>Cap:</strong> 60 covers/service · 10% held for walk-ins</span>
+    </div>
+  </div>
+
+  <!-- Pricing -->
+  <div>
+    <div class="label">Investment</div>
+    <div class="pricing-wrap">
+      <div class="price-card">
+        <div style="font-size:10px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.45);">One-Time Setup</div>
+        <div class="price-amount">₹65,000</div>
+        <div class="price-sub">Full platform, all features</div>
+        <div class="price-items">
+          ✓ WhatsApp AI + website portal<br>
+          ✓ Staff dashboard (Manager + Host)<br>
+          ✓ Guest CRM + floor map<br>
+          ✓ All automations + marketing<br>
+          ✓ Staff training included
+        </div>
+        <div class="price-terms">50% on kickoff · 50% on go-live<br>No per-cover fees. No transaction cuts.</div>
+      </div>
+      <div class="retainer-block">
+        <div style="font-size:10px; font-weight:600; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:2px;">Optional Monthly Retainer</div>
+        <div class="retainer-row">
+          <div>
+            <div class="retainer-name">Infrastructure</div>
+            <div class="retainer-desc">Hosting, database, backups, SSL, uptime monitoring</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="retainer-price">₹1,500</div>
+            <div class="retainer-per">/month</div>
+          </div>
+        </div>
+        <div class="retainer-row highlight">
+          <div>
+            <div class="retainer-name">Operations <span class="popular-badge">Popular</span></div>
+            <div class="retainer-desc">+ WhatsApp API costs · AI costs · bug fixes · support</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="retainer-price">₹4,000</div>
+            <div class="retainer-per">/month</div>
+          </div>
+        </div>
+        <div class="retainer-row">
+          <div>
+            <div class="retainer-name">Full Service</div>
+            <div class="retainer-desc">+ Priority support · feature updates · monthly review</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="retainer-price">₹7,000</div>
+            <div class="retainer-per">/month</div>
+          </div>
+        </div>
+        <div style="font-size:10px; color:#aaa; padding: 0 4px;">Retainer is optional — the platform runs without it. API costs can be managed directly if preferred.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div>
+      <div class="footer-name">Harsh Agrawal</div>
+      <div class="footer-contact">harshagrawal493@gmail.com</div>
+    </div>
+    <div class="footer-date">CONFIDENTIAL · SANADIGE DELHI · APRIL 2026</div>
+  </div>
+
+</div>
+</body>
+</html>

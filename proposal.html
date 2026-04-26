@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sanadige Digital Experience — Proposal</title>
+<title>Sanadige — Reservation System Proposal</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap');
 
@@ -873,6 +873,85 @@
     .cover { min-height: 100vh; }
     .page { page-break-inside: avoid; }
   }
+
+  /* ─── MOBILE RESPONSIVE ─────────────────────────── */
+  @media (max-width: 768px) {
+    .cover { padding: 40px 24px; min-height: auto; gap: 40px; }
+    .cover-wordmark { font-size: 40px; letter-spacing: 4px; }
+    .cover-title { font-size: 30px; }
+    .cover-subtitle { font-size: 13px; }
+    .cover-footer { flex-direction: column; align-items: flex-start; gap: 20px; }
+
+    .page { padding: 48px 20px; }
+
+    .section-title { font-size: 30px; }
+    .section-body { font-size: 14px; }
+
+    .two-col  { grid-template-columns: 1fr; gap: 20px; margin-top: 28px; }
+    .three-col{ grid-template-columns: 1fr; gap: 16px; margin-top: 24px; }
+    .stat-grid{ grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .feature-header { flex-wrap: wrap; }
+    .feature-name { font-size: 24px; }
+
+    /* WA flow — horizontal scroll */
+    .flow-row { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 0; padding-bottom: 12px; }
+    .flow-step { min-width: 160px; }
+
+    /* Dashboard — scrollable wrapper */
+    .dashboard-mockup { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .dashboard-mockup > * { min-width: 600px; }
+    .db-kpi-row { grid-template-columns: 1fr 1fr; }
+    .db-grid { grid-template-columns: 1fr; }
+    .db-nav { gap: 10px; }
+
+    /* Staff role grid */
+    [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+
+    /* Solution cards */
+    [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr; }
+
+    .cta-section { padding: 48px 24px; }
+    .cta-title { font-size: 34px; }
+    .cta-btn { display: block; margin: 8px auto; max-width: 240px; text-align: center; }
+
+    /* Pricing table */
+    table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
+
+    /* Investment layout */
+    [style*="grid-template-columns: 220px"] { grid-template-columns: 1fr !important; }
+
+    /* Business rules 3-col */
+    [style*="grid-template-columns:1fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
+    [style*="grid-template-columns: 1fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
+
+    /* Comparison grid */
+    .wa-flow-title { font-size: 11px; }
+
+    /* Campaign builder */
+    [style*="grid-template-columns:280px 1fr"] { grid-template-columns: 1fr !important; }
+    [style*="grid-template-columns: 280px 1fr"] { grid-template-columns: 1fr !important; }
+
+    /* Lifecycle grid */
+    [style*="grid-template-columns:repeat(4, 1fr)"] { grid-template-columns: 1fr 1fr !important; }
+    [style*="repeat(4, 1fr)"] { grid-template-columns: 1fr 1fr !important; }
+
+    /* Tech two-col */
+    [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+
+    /* Inline flex rows that need to wrap */
+    [style*="display:flex"][style*="gap:32px"] { flex-wrap: wrap !important; }
+    [style*="display:flex"][style*="gap:48px"] { flex-wrap: wrap !important; }
+  }
+
+  @media (max-width: 480px) {
+    .stat-grid { grid-template-columns: 1fr; }
+    .cover-wordmark { font-size: 32px; letter-spacing: 3px; }
+    .cover-title { font-size: 26px; }
+    .section-title { font-size: 26px; }
+    [style*="repeat(4, 1fr)"] { grid-template-columns: 1fr !important; }
+  }
+
 </style>
 </head>
 <body>

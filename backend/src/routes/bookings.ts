@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { sendBookingConfirmationTemplate } from '../lib/whatsapp'
+import { sendBookingConfirmationTemplate, sendWhatsAppMessage } from '../lib/whatsapp'
 
 export const bookingsRouter = Router()
 
@@ -60,5 +60,19 @@ bookingsRouter.post('/confirm', async (req, res) => {
   } catch (err) {
     console.error('[bookings] confirm error:', err)
     res.json({ ok: true })
+  }
+})
+
+bookingsRouter.post('/whatsapp/send', async (req, res) => {
+  try {
+    const { to, text } = req.body as { to: string; text: string }
+    if (!to || !text) return res.status(400).json({ ok: false, error: 'Missing to or text' })
+    const digits = to.replace(/\D/g, '')
+    const normalized = digits.length === 10 ? `91${digits}` : digits
+    await sendWhatsAppMessage(normalized, text)
+    res.json({ ok: true })
+  } catch (err) {
+    console.error('[bookings] whatsapp send error:', err)
+    res.status(500).json({ ok: false })
   }
 })

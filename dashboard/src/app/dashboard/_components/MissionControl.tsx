@@ -11,18 +11,18 @@ async function getDashboardData() {
   const todayEnd   = `${today}T23:59:59+05:30`
   const thirtyDaysAgo = new Date(istNow.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-  const [todaySnap, monthSnap] = await Promise.all([
+  const [todaySnap, monthSnap, configSnap] = await Promise.all([
     db.collection('bookings')
       .where('datetime', '>=', todayStart)
       .where('datetime', '<=', todayEnd)
-      .where('status', 'in', ['confirmed', 'seated'])
       .orderBy('datetime')
       .get(),
     db.collection('bookings')
       .where('datetime', '>=', thirtyDaysAgo.toISOString())
-      .where('status', 'in', ['confirmed', 'seated'])
+      .where('status', 'in', ['confirmed', 'seated', 'checked_in', 'completed'])
       .orderBy('datetime')
       .get(),
+    db.collection('service_config').doc(today).get(),
   ])
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -30,8 +30,12 @@ async function getDashboardData() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const monthBookings = monthSnap.docs.map(d => d.data()) as any[]
 
-  const bookedSeats = todayBookings.reduce((s: number, b: any) => s + (b.party_size ?? 0), 0)
-  const availableSeats = Math.max(0, 142 - bookedSeats)
+  const coverCap = (configSnap.exists ? (configSnap.data() as any).cover_cap : null) ?? 60
+  const active = todayBookings.filter(b => ['confirmed', 'checked_in', 'seated'].includes(b.status))
+  const bookedSeats = active.reduce((s: number, b: any) => s + (b.party_size ?? 0), 0)
+  const noShows = todayBookings.filter(b => b.status === 'no_show').length
+  const checkedIn = todayBookings.filter(b => ['checked_in', 'seated'].includes(b.status)).length
+  const availableSeats = Math.max(0, coverCap - bookedSeats)
 
   const byDay: Record<string, number> = {}
   monthBookings.forEach((b: any) => {
@@ -52,8 +56,8 @@ async function getDashboardData() {
   })
 
   return {
-    kpi: { todayBookings: todayBookings.length, availableSeats },
-    upcoming: todayBookings.slice(0, 5),
+    kpi: { todayBookings: active.length, availableSeats, checkedIn, noShows },
+    upcoming: todayBookings.filter(b => ['confirmed', 'checked_in'].includes(b.status)).slice(0, 5),
     weekData,
     monthData,
   }

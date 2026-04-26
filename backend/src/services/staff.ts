@@ -1,7 +1,7 @@
 import { db, adminAuth } from '../lib/firebase'
 import { env } from '../env'
 
-export type StaffRole = 'chef' | 'host' | 'manager' | 'waiter'
+export type StaffRole = 'host' | 'manager'
 
 export interface StaffMember {
   id: string

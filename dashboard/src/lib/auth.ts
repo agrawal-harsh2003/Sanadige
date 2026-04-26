@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers'
 import { getAdminAuth } from './firebase-admin'
 
-export type Role = 'manager' | 'chef' | 'host' | 'waiter'
+export type Role = 'manager' | 'host'
 
 export interface Session {
   uid: string

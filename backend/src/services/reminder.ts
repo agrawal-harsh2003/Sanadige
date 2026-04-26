@@ -257,6 +257,22 @@ export async function notifyStaffOfCancellation(params: {
   }
 }
 
+// ── Expire Held Pending Bookings (website hold) ────────────────────────────────
+
+async function expireHeldBookings(): Promise<void> {
+  const now = new Date().toISOString()
+  const snap = await db.collection('bookings')
+    .where('status', '==', 'pending')
+    .where('held_until', '<', now)
+    .limit(50)
+    .get()
+
+  for (const doc of snap.docs) {
+    await doc.ref.update({ status: 'cancelled' })
+    console.log(`[reminder] Expired held booking ${doc.data().booking_ref}`)
+  }
+}
+
 // ── Cron Registration ──────────────────────────────────────────────────────────
 
 export function startReminderJob(): void {
@@ -274,6 +290,9 @@ export function startReminderJob(): void {
   })
   cron.schedule('*/10 * * * *', () => {
     sendDayOfMessages().catch(err => console.error('[reminder] Day-of failed:', err))
+  })
+  cron.schedule('* * * * *', () => {
+    expireHeldBookings().catch(err => console.error('[reminder] Expire held failed:', err))
   })
   console.log('[reminder] Cron jobs started')
 }

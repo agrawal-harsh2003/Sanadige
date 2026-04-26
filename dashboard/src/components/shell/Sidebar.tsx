@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, CalendarDays, Users } from 'lucide-react'
+import { LayoutDashboard, CalendarDays, Users, BarChart2, Megaphone, Settings, Map } from 'lucide-react'
 import { type Role } from '@/lib/auth'
 
 interface NavItem {
@@ -12,16 +12,18 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { href: '/dashboard',          label: 'Mission Control', roles: ['manager'],                           icon: LayoutDashboard },
-  { href: '/dashboard/bookings', label: 'Bookings',        roles: ['manager', 'host', 'waiter', 'chef'], icon: CalendarDays },
-  { href: '/dashboard/guests',   label: 'Guests',          roles: ['manager'],                           icon: Users },
+  { href: '/dashboard',            label: 'Mission Control', roles: ['manager'],          icon: LayoutDashboard },
+  { href: '/dashboard/bookings',   label: 'Bookings',        roles: ['manager', 'host'],  icon: CalendarDays },
+  { href: '/dashboard/floor',      label: 'Floor Map',       roles: ['manager', 'host'],  icon: Map },
+  { href: '/dashboard/guests',     label: 'Guests',          roles: ['manager'],          icon: Users },
+  { href: '/dashboard/analytics',  label: 'Analytics',       roles: ['manager'],          icon: BarChart2 },
+  { href: '/dashboard/marketing',  label: 'Marketing',       roles: ['manager'],          icon: Megaphone },
+  { href: '/dashboard/settings',   label: 'Settings',        roles: ['manager'],          icon: Settings },
 ]
 
 const ROLE_STYLE: Record<string, string> = {
   manager: 'bg-accent/20 text-accent-foreground',
-  host: 'bg-sidebar-accent text-sidebar-accent-foreground',
-  chef: 'bg-amber-500/20 text-amber-200',
-  waiter: 'bg-emerald-500/20 text-emerald-300',
+  host:    'bg-sidebar-accent text-sidebar-accent-foreground',
 }
 
 export function Sidebar({ role, name }: { role: Role; name?: string }) {

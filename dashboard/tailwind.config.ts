@@ -38,7 +38,8 @@ const config: Config = {
         'sidebar-border': 'var(--sidebar-border)',
       },
       fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
+        sans:      ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
+        cormorant: ['var(--font-cormorant)', 'Georgia', 'serif'],
       },
     },
   },

@@ -52,7 +52,7 @@ export default async function GuestDetailPage({ params }: { params: Promise<{ id
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-bold text-foreground">{guest.name}</h1>
+          <h1 className="font-cormorant text-[2rem] font-semibold text-foreground leading-none">{guest.name}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{guest.phone}{guest.email ? ` \u00b7 ${guest.email}` : ''}</p>
         </div>
         <GuestTierSelect guestId={id} currentTier={guest.tier} />
@@ -63,14 +63,14 @@ export default async function GuestDetailPage({ params }: { params: Promise<{ id
           { label: 'Tier', value: <span className={`text-sm font-semibold px-2 py-0.5 rounded-full capitalize ${TIER_BADGE[guest.tier]}`}>{guest.tier}</span> },
           { label: 'First Visit', value: guest.first_visit_at ? new Date(guest.first_visit_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '\u2014' },
         ].map(({ label, value }) => (
-          <div key={label} className="bg-card shadow-sm ring-1 ring-black/5 rounded-2xl p-5">
+          <div key={label} className="bg-card shadow-sm ring-1 ring-black/[0.04] rounded-2xl p-5">
             <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-2">{label}</p>
             <p className="text-2xl font-bold text-foreground">{value}</p>
           </div>
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-card shadow-sm ring-1 ring-black/5 rounded-2xl p-5 space-y-3">
+        <div className="bg-card shadow-sm ring-1 ring-black/[0.04] rounded-2xl p-5 space-y-3">
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Profile</p>
           {([['Dietary', guest.dietary_notes], ['Seating', guest.seating_preference], ['Marketing', guest.is_marketing_opted_in ? 'Opted in' : 'Opted out']] as [string,string][]).map(([label, value]) => (
             <div key={label} className="flex justify-between text-sm">
@@ -79,7 +79,7 @@ export default async function GuestDetailPage({ params }: { params: Promise<{ id
             </div>
           ))}
         </div>
-        <div className="bg-card shadow-sm ring-1 ring-black/5 rounded-2xl p-5 space-y-3">
+        <div className="bg-card shadow-sm ring-1 ring-black/[0.04] rounded-2xl p-5 space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Staff Notes</p>
             <GuestNoteDrawer guestId={id} staffName={session.name} />
@@ -93,7 +93,7 @@ export default async function GuestDetailPage({ params }: { params: Promise<{ id
           ))}
         </div>
       </div>
-      <div className="bg-card shadow-sm ring-1 ring-black/5 rounded-2xl overflow-hidden">
+      <div className="bg-card shadow-sm ring-1 ring-black/[0.04] rounded-2xl overflow-hidden">
         <div className="px-5 py-3 border-b border-border">
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Booking History</p>
         </div>

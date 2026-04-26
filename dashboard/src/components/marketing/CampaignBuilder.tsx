@@ -40,7 +40,7 @@ export function CampaignBuilder() {
       <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
         <div className="bg-card rounded-2xl shadow-xl p-8 max-w-sm w-full text-center space-y-4">
           <div className="text-4xl">✅</div>
-          <p className="text-xl font-bold text-foreground">Campaign Sent</p>
+          <p className="font-cormorant text-[26px] font-semibold text-foreground leading-none">Campaign Sent</p>
           <p className="text-muted-foreground">WhatsApp messages sent to <strong>{result.sent}</strong> guests.</p>
           <Button onClick={() => { setOpen(false); setResult(null); setName(''); setMessage('') }} className="w-full">Done</Button>
         </div>

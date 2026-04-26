@@ -67,7 +67,7 @@ export async function MissionControl() {
   const data = await getDashboardData()
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-foreground">Mission Control</h1>
+      <h1 className="font-cormorant text-[2rem] font-semibold text-foreground leading-none">Mission Control</h1>
       <KpiRow data={data.kpi} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <BookingsChart weekData={data.weekData} monthData={data.monthData} />

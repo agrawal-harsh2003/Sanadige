@@ -35,8 +35,8 @@ export default async function GuestsPage({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-foreground">Guests</h1>
-        <p className="text-sm text-muted-foreground">{guests.length} profiles</p>
+        <h1 className="font-cormorant text-[2rem] font-semibold text-foreground leading-none">Guests</h1>
+        <p className="text-[12px] text-muted-foreground">{guests.length} profiles</p>
       </div>
       <div className="flex gap-3">
         <form className="flex gap-3 flex-1">
@@ -52,26 +52,26 @@ export default async function GuestsPage({
           <button type="submit" className="h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium">Search</button>
         </form>
       </div>
-      <div className="bg-card shadow-sm ring-1 ring-black/5 rounded-2xl overflow-hidden">
+      <div className="bg-card shadow-sm ring-1 ring-black/[0.04] rounded-2xl overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border bg-muted/40">
+            <tr className="border-b border-border bg-muted/30">
               {['Name', 'Phone', 'Tier', 'Visits', 'Last Visit', 'Dietary', 'Marketing'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">{h}</th>
+                <th key={h} className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {guests.map((g: any, i: number) => (
-              <tr key={g.id} className={`border-b border-border hover:bg-muted/30 transition-colors ${i % 2 === 0 ? '' : 'bg-muted/10'}`}>
+              <tr key={g.id} className={`border-b border-border/60 hover:bg-muted/20 transition-colors ${i % 2 === 0 ? '' : 'bg-muted/[0.04]'}`}>
                 <td className="px-4 py-3">
-                  <Link href={`/dashboard/guests/${g.id}`} className="font-medium text-foreground hover:text-primary transition-colors">{g.name}</Link>
+                  <Link href={`/dashboard/guests/${g.id}`} className="font-medium text-[13px] text-foreground hover:text-accent transition-colors">{g.name}</Link>
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{g.phone}</td>
+                <td className="px-4 py-3 text-[12px] text-muted-foreground">{g.phone}</td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${TIER_BADGE[g.tier] ?? ''}`}>{g.tier}</span>
+                  <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full capitalize ${TIER_BADGE[g.tier] ?? ''}`}>{g.tier}</span>
                 </td>
-                <td className="px-4 py-3 font-semibold text-foreground">{g.visit_count}</td>
+                <td className="px-4 py-3 font-cormorant text-[18px] font-semibold text-foreground leading-none">{g.visit_count}</td>
                 <td className="px-4 py-3 text-muted-foreground">
                   {g.last_visit_at ? new Date(g.last_visit_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'}
                 </td>

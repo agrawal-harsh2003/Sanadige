@@ -32,12 +32,12 @@ export default async function MarketingPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-foreground">Marketing</h1>
+        <h1 className="font-cormorant text-[2rem] font-semibold text-foreground leading-none">Marketing</h1>
         <CampaignBuilder />
       </div>
 
       {/* Automated triggers strip */}
-      <div className="bg-card shadow-sm ring-1 ring-black/5 rounded-2xl p-5">
+      <div className="bg-card shadow-sm ring-1 ring-black/[0.04] rounded-2xl p-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-4">Automated Triggers (always on)</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {[
@@ -59,7 +59,7 @@ export default async function MarketingPage() {
       </div>
 
       {/* Campaign history */}
-      <div className="bg-card shadow-sm ring-1 ring-black/5 rounded-2xl overflow-hidden">
+      <div className="bg-card shadow-sm ring-1 ring-black/[0.04] rounded-2xl overflow-hidden">
         <div className="px-5 py-4 border-b border-border">
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Campaign History</p>
         </div>

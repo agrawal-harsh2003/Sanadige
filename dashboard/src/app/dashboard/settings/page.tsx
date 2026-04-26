@@ -25,17 +25,17 @@ export default async function SettingsPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-foreground">Settings</h1>
+      <h1 className="font-cormorant text-[2rem] font-semibold text-foreground leading-none">Settings</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Service config */}
-        <div className="bg-card shadow-sm ring-1 ring-black/5 rounded-2xl p-6">
+        <div className="bg-card shadow-sm ring-1 ring-black/[0.04] rounded-2xl p-6">
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-4">Service Configuration</p>
           <ServiceConfigForm date={date} config={config as { cover_cap?: number; walkin_allocation_pct?: number; is_closed?: boolean; notes?: string } | null} />
         </div>
 
         {/* Business rules summary */}
-        <div className="bg-card shadow-sm ring-1 ring-black/5 rounded-2xl p-6">
+        <div className="bg-card shadow-sm ring-1 ring-black/[0.04] rounded-2xl p-6">
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground mb-4">Business Rules</p>
           <div className="space-y-4 text-sm">
             <div className="space-y-1">

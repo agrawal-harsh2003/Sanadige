@@ -94,7 +94,7 @@ export default async function FloorPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-foreground">Floor Map</h1>
+        <h1 className="font-cormorant text-[2rem] font-semibold text-foreground leading-none">Floor Map</h1>
         <div className="flex items-center gap-4">
           {/* Legend */}
           <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground">
@@ -115,7 +115,7 @@ export default async function FloorPage() {
       </div>
 
       {hasNoTables ? (
-        <div className="bg-card shadow-sm ring-1 ring-black/5 rounded-2xl p-12 text-center">
+        <div className="bg-card shadow-sm ring-1 ring-black/[0.04] rounded-2xl p-12 text-center">
           <p className="text-muted-foreground mb-4">No tables configured yet.</p>
           {session.role === 'manager' && (
             <p className="text-sm text-muted-foreground">Use the &ldquo;Seed Tables&rdquo; button to create the default table layout.</p>

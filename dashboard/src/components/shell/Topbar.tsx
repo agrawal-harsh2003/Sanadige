@@ -9,15 +9,18 @@ const ROLE_BADGE: Record<string, string> = {
 
 export function Topbar({ session }: { session: Session }) {
   return (
-    <header className="h-14 border-b border-border bg-card shadow-sm flex items-center justify-between px-6">
+    <header className="h-14 border-b border-border bg-card/80 backdrop-blur-sm flex items-center justify-between px-6 sticky top-0 z-20">
       <div />
-      <div className="flex items-center gap-3">
-        <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide ${ROLE_BADGE[session.role] ?? ''}`}>
-          {session.role}
-        </span>
-        <span className="text-sm font-medium text-foreground">{session.name}</span>
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2.5">
+          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-[0.1em] ${ROLE_BADGE[session.role] ?? ''}`}>
+            {session.role}
+          </span>
+          <span className="text-sm text-foreground font-medium">{session.name}</span>
+        </div>
+        <div className="h-4 w-px bg-border" />
         <form action={logout}>
-          <Button variant="ghost" size="sm" type="submit" className="text-muted-foreground hover:text-primary">
+          <Button variant="ghost" size="sm" type="submit" className="text-[13px] text-muted-foreground hover:text-foreground h-8 px-3">
             Sign out
           </Button>
         </form>

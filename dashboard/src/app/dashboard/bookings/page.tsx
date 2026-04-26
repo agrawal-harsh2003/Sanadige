@@ -24,7 +24,7 @@ export default async function BookingsPage({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-foreground">Bookings</h1>
+        <h1 className="font-cormorant text-[2rem] font-semibold text-foreground leading-none">Bookings</h1>
         <div className="flex items-center gap-3"><DateNav date={date} /><NewBookingDrawer /></div>
       </div>
       <BookingsTable bookings={bookings} date={date} />

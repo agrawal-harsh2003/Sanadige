@@ -21,26 +21,24 @@ const NAV: NavItem[] = [
   { href: '/dashboard/settings',   label: 'Settings',        roles: ['manager'],          icon: Settings },
 ]
 
-const ROLE_STYLE: Record<string, string> = {
-  manager: 'bg-accent/20 text-accent-foreground',
-  host:    'bg-sidebar-accent text-sidebar-accent-foreground',
-}
-
 export function Sidebar({ role, name }: { role: Role; name?: string }) {
   const pathname = usePathname()
   const items = NAV.filter(item => item.roles.includes(role))
 
   return (
-    <aside className="hidden md:flex flex-col w-[230px] min-h-screen bg-sidebar border-r border-sidebar-border">
+    <aside className="hidden md:flex flex-col w-[240px] min-h-screen bg-sidebar border-r border-sidebar-border">
       {/* Brand */}
-      <div className="px-5 py-6 border-b border-sidebar-border">
-        <p className="text-sidebar-foreground font-bold text-xl tracking-tight">Sanadige</p>
-        <p className="text-[11px] text-sidebar-foreground/50 mt-0.5">Where the coast meets Delhi</p>
+      <div className="px-6 pt-7 pb-6 border-b border-sidebar-border/60">
+        <p className="font-cormorant text-sidebar-foreground text-[28px] font-semibold leading-none tracking-wide">
+          Sanadige
+        </p>
+        <p className="text-[11px] text-sidebar-foreground/40 mt-1.5 tracking-[0.08em] uppercase font-medium">
+          New Delhi
+        </p>
       </div>
 
       {/* Nav */}
-      <nav className="flex flex-col gap-0.5 px-3 py-4 flex-1">
-        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-sidebar-foreground/40 px-2 mb-2">Navigation</p>
+      <nav className="flex flex-col gap-0.5 px-3 py-5 flex-1">
         {items.map(item => {
           const active = pathname === item.href
           const Icon = item.icon
@@ -48,13 +46,20 @@ export function Sidebar({ role, name }: { role: Role; name?: string }) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150 ${
                 active
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground border-l-2 border-accent pl-[10px]'
-                  : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
+                  ? 'bg-white/8 text-sidebar-foreground'
+                  : 'text-sidebar-foreground/55 hover:text-sidebar-foreground/85 hover:bg-white/5'
               }`}
             >
-              <Icon size={16} strokeWidth={active ? 2.5 : 1.8} />
+              {active && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-[oklch(0.585_0.135_44)]" />
+              )}
+              <Icon
+                size={15}
+                strokeWidth={active ? 2 : 1.6}
+                className={active ? 'text-[oklch(0.585_0.135_44)]' : ''}
+              />
               {item.label}
             </Link>
           )
@@ -63,16 +68,16 @@ export function Sidebar({ role, name }: { role: Role; name?: string }) {
 
       {/* Staff pill */}
       {name && (
-        <div className="px-4 py-4 border-t border-sidebar-border">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
-              <span className="text-accent-foreground text-sm font-bold">{name[0]?.toUpperCase()}</span>
+        <div className="px-4 py-4 border-t border-sidebar-border/60">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-[oklch(0.585_0.135_44)]/20 ring-1 ring-[oklch(0.585_0.135_44)]/30 flex items-center justify-center flex-shrink-0">
+              <span className="text-[oklch(0.585_0.135_44)] text-[13px] font-cormorant font-semibold leading-none">
+                {name[0]?.toUpperCase()}
+              </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sidebar-foreground text-sm font-medium truncate">{name}</p>
-              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wide ${ROLE_STYLE[role] ?? ''}`}>
-                {role}
-              </span>
+              <p className="text-sidebar-foreground text-[13px] font-medium truncate leading-snug">{name}</p>
+              <p className="text-sidebar-foreground/40 text-[10px] uppercase tracking-[0.1em] leading-none mt-0.5">{role}</p>
             </div>
           </div>
         </div>

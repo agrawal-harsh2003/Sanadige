@@ -17,11 +17,10 @@ export async function getSession(): Promise<Session | null> {
 
   try {
     const adminAuth = getAdminAuth()
-    const decoded = await adminAuth.verifySessionCookie(sessionCookie, true)
+    const decoded = await adminAuth.verifySessionCookie(sessionCookie, false)
     const phone = decoded.phone_number as string | undefined
     if (!phone) return null
 
-    // Try claims first (fast path for returning users with claims set)
     const claims = decoded as Record<string, unknown>
     if (claims.role) {
       return {
@@ -32,7 +31,6 @@ export async function getSession(): Promise<Session | null> {
       }
     }
 
-    // Fallback: look up staff in Firestore (first login before claims propagate)
     const phoneKey = phone.startsWith('+') ? phone.slice(1) : phone
     const db = getAdminDb()
     const snap = await db.collection('staff').where('phone', '==', phoneKey).limit(1).get()
@@ -45,7 +43,8 @@ export async function getSession(): Promise<Session | null> {
       name: staff.name ?? '',
       role: staff.role as Role,
     }
-  } catch {
+  } catch (err) {
+    console.error('[auth] getSession error:', err)
     return null
   }
 }

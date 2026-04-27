@@ -59,7 +59,7 @@
 
     /* ── Sidebar: deep teal ─────────────────────────────────────────────────── */
     --sidebar:                  oklch(0.235 0.052 196);
-    --sidebar-foreground:       oklch(0.94 0.012 75);
+    --sidebar-foreground:       oklch(0.97 0.008 75);
     --sidebar-primary:          oklch(0.585 0.135 44);
     --sidebar-primary-foreground: oklch(1 0 0);
     --sidebar-accent:           oklch(0.275 0.055 196);

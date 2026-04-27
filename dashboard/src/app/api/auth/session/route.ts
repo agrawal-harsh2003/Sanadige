@@ -17,8 +17,10 @@ export async function POST(req: NextRequest) {
     // Look up staff by phone (stored without leading +)
     const phoneKey = phone.startsWith('+') ? phone.slice(1) : phone
     const db = getAdminDb()
+    console.log('[session] Looking up phone:', phoneKey, '| project:', process.env.FIREBASE_PROJECT_ID)
     const snap = await db.collection('staff').where('phone', '==', phoneKey).limit(1).get()
-    if (snap.empty) return NextResponse.json({ error: 'Not registered as staff' }, { status: 403 })
+    console.log('[session] Staff snap size:', snap.size, '| docs:', snap.docs.map(d => d.data().phone))
+    if (snap.empty) return NextResponse.json({ error: `Not registered as staff (searched: ${phoneKey})` }, { status: 403 })
 
     const staff = snap.docs[0].data()
 

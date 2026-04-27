@@ -2,6 +2,7 @@
 import { revalidatePath } from 'next/cache'
 import { getAdminDb } from '@/lib/firebase-admin'
 import { backendPost } from '@/lib/backend'
+import { upsertGuest } from '@/actions/guests'
 
 
 
@@ -27,10 +28,18 @@ export async function createBooking(data: {
   const db = getAdminDb()
   const booking_ref = generateRef()
 
+  const guest_id = await upsertGuest({
+    phone: data.phone,
+    name: data.guest_name,
+    email: data.email,
+    special_notes: data.special_notes,
+  }).catch(() => null)
+
   await db.collection('bookings').add({
     ...data,
     booking_ref,
     whatsapp_id: data.phone,
+    guest_id: guest_id ?? null,
     status: 'confirmed',
     channel: 'phone',
     reminder_sent_at: null,
@@ -111,10 +120,17 @@ export async function createWalkIn(data: {
   const booking_ref = 'SND-' + Math.random().toString(36).substring(2, 8).toUpperCase()
   const now = istNow.toISOString()
 
+  const guest_id = await upsertGuest({
+    phone: data.phone,
+    name: data.guest_name,
+    whatsapp_id: data.phone,
+  }).catch(() => null)
+
   const bookingRef = await db.collection('bookings').add({
     ...data,
     booking_ref,
     whatsapp_id: data.phone,
+    guest_id: guest_id ?? null,
     floor: tableData.floor,
     table_id: available.id,
     datetime: now,

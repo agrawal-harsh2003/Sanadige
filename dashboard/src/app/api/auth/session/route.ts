@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAdminAuth } from '@/lib/firebase-admin'
+import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin'
 import { cookies } from 'next/headers'
 
 export async function POST(req: NextRequest) {
@@ -8,6 +8,25 @@ export async function POST(req: NextRequest) {
 
   try {
     const adminAuth = getAdminAuth()
+
+    // Decode token to get phone number
+    const decoded = await adminAuth.verifyIdToken(idToken)
+    const phone = decoded.phone_number
+    if (!phone) return NextResponse.json({ error: 'No phone number on token' }, { status: 401 })
+
+    // Look up staff by phone (stored without leading +)
+    const phoneKey = phone.startsWith('+') ? phone.slice(1) : phone
+    const db = getAdminDb()
+    const snap = await db.collection('staff').where('phone', '==', phoneKey).limit(1).get()
+    if (snap.empty) return NextResponse.json({ error: 'Not registered as staff' }, { status: 403 })
+
+    const staff = snap.docs[0].data()
+
+    // Ensure custom claims are set (needed for getSession role check)
+    if (!decoded.role) {
+      await adminAuth.setCustomUserClaims(decoded.uid, { role: staff.role, name: staff.name })
+    }
+
     const expiresIn = 60 * 60 * 24 * 5 * 1000 // 5 days in ms
     const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn })
 

@@ -143,15 +143,14 @@ sanadige/
 ## Booking Lifecycle
 
 ```
-pending ──► confirmed ──► checked_in ──► seated ──► completed
-               │               │
-               ▼               ▼
-           cancelled        no_show (auto at +20 min)
+confirmed ──► checked_in ──► seated ──► completed
+    │               │
+    ▼               ▼
+cancelled        no_show (auto at +20 min)
 ```
 
-- **pending** — website hold, expires in 15 min if not confirmed
-- **confirmed** — deposit paid or host approval; triggers WhatsApp confirmation template
-- **checked_in** — host taps Check In at arrival
+- **confirmed** — booking created via any channel; triggers WhatsApp confirmation template immediately
+- **checked_in** — host taps Check In at arrival; opens table picker
 - **seated** — host assigns a table on the floor map
 - **completed** — bill settled; triggers post-dining feedback
 - **no_show** — auto-marked 20 min after booking time if still confirmed
@@ -175,15 +174,124 @@ Login is via phone OTP (Firebase Phone Auth). No passwords.
 | Trigger | What happens |
 |---|---|
 | Booking confirmed | WhatsApp confirmation template sent to guest |
-| 2h before arrival | Reminder with booking details sent |
-| 1h before arrival | Day-of arrival message sent |
+| 2h before arrival | Reminder template sent (`sanadige_booking_reminder_2h`) |
+| 1h before arrival | Day-of template sent (`sanadige_dayof_reminder`) |
 | 20 min after booking time (no check-in) | Auto-marked no_show, staff notified |
-| ~2h after booking time | Post-dining feedback request sent |
+| ~2h after booking time | Post-dining feedback template sent (`sanadige_post_meal_feedback`) |
 | 5:00 PM daily | Staff briefing with tonight's bookings |
 | Guest lapsed 90 days | Re-engagement WhatsApp (opt-in only) |
 | Birthday in next 7 days | Birthday invite sent |
 | 5th / 10th / 20th visit | Milestone message |
-| Pending hold expires (15 min) | Booking auto-cancelled, slot released |
+
+> **Note:** The 2h reminder, 1h day-of, and post-meal messages currently use free-form WhatsApp messages
+> which only work within Meta's 24-hour service window. To make these work for all guests (including
+> website and phone bookings), the three templates below must be submitted and approved in Meta Business
+> Manager before the cron jobs are updated to use `sendTemplate()`.
+
+---
+
+## WhatsApp Message Templates
+
+These three templates must be created and approved in
+[Meta Business Manager → WhatsApp → Message Templates](https://business.facebook.com/wa/manage/message-templates/)
+before the automated reminder cron jobs can reliably reach all guests outside the 24-hour service window.
+
+Once approved, update `backend/src/services/reminder.ts` to replace `sendWhatsAppMessage()` calls
+with `sendBookingConfirmationTemplate()`-style calls using the approved template names.
+
+---
+
+### Template 1 — 2-Hour Reminder
+
+| Field | Value |
+|---|---|
+| **Name** | `sanadige_booking_reminder_2h` |
+| **Category** | UTILITY |
+| **Language** | English |
+
+**Body:**
+```
+Your table at Sanadige is in 2 hours, {{1}}!
+
+📅 Tonight · {{2}}
+👥 {{3}} guests · {{4}}
+🔖 Ref: {{5}}
+
+Need to cancel? Reply CANCEL or call +91 91678 85275.
+We look forward to seeing you! 🙏
+```
+
+**Variables (in order):**
+| # | Field | Example |
+|---|---|---|
+| `{{1}}` | Guest name | `Rahul` |
+| `{{2}}` | Booking time (IST) | `08:00 PM` |
+| `{{3}}` | Party size | `4` |
+| `{{4}}` | Floor | `Terrace` |
+| `{{5}}` | Booking ref | `SND-A1B2C3` |
+
+---
+
+### Template 2 — 1-Hour Day-Of Message
+
+| Field | Value |
+|---|---|
+| **Name** | `sanadige_dayof_reminder` |
+| **Category** | UTILITY |
+| **Language** | English |
+
+**Body:**
+```
+Sanadige — your table is ready for tonight! 🌊
+
+📅 {{1}} · {{2}}
+📍 28, Aradhana Enclave, Chanakyapuri, New Delhi
+
+We look forward to welcoming you 🙏
+```
+
+**Variables (in order):**
+| # | Field | Example |
+|---|---|---|
+| `{{1}}` | Booking time (IST) | `08:00 PM` |
+| `{{2}}` | Floor | `Terrace` |
+
+---
+
+### Template 3 — Post-Meal Feedback
+
+| Field | Value |
+|---|---|
+| **Name** | `sanadige_post_meal_feedback` |
+| **Category** | UTILITY |
+| **Language** | English |
+
+**Body:**
+```
+Thank you for dining with us tonight, {{1}}! 🙏
+
+We hope your meal was everything you hoped for. 🌊
+
+How was your experience at Sanadige?
+```
+
+**Buttons (Quick Reply):**
+| Button | Reply ID |
+|---|---|
+| Exceptional | `fb_excellent` |
+| Very Good | `fb_good` |
+| Leave feedback | `fb_ok` |
+
+**Variables (in order):**
+| # | Field | Example |
+|---|---|---|
+| `{{1}}` | Guest name | `Rahul` |
+
+---
+
+**After all three templates are approved**, update `sendBookingReminders()`, `sendDayOfMessages()`,
+and `sendPostMealFeedback()` in `backend/src/services/reminder.ts` to call the approved template
+versions instead of the free-form `sendWhatsAppMessage()` / `sendButtons()` functions.
 
 ---
 

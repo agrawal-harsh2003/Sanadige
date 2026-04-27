@@ -18,16 +18,22 @@ export default function LoginPage() {
   const recaptchaRef = useRef<RecaptchaVerifier | null>(null)
   const router = useRouter()
 
+  function resetRecaptcha() {
+    if (recaptchaRef.current) {
+      try { recaptchaRef.current.clear() } catch { /* already cleared */ }
+      recaptchaRef.current = null
+    }
+    const container = document.getElementById('recaptcha-container')
+    if (container) container.innerHTML = ''
+  }
+
   async function sendOtp(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
       const auth = getClientAuth()
-      if (recaptchaRef.current) {
-        recaptchaRef.current.clear()
-        recaptchaRef.current = null
-      }
+      resetRecaptcha()
       recaptchaRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' })
       const digits = phone.replace(/\D/g, '')
       const e164 = digits.length === 10 ? `+91${digits}` : `+${digits}`
@@ -36,7 +42,7 @@ export default function LoginPage() {
       setStep('otp')
     } catch (err: unknown) {
       setError((err as Error).message ?? 'Failed to send OTP')
-      if (recaptchaRef.current) { recaptchaRef.current.clear(); recaptchaRef.current = null }
+      resetRecaptcha()
     } finally {
       setLoading(false)
     }

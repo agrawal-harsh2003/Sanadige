@@ -1,5 +1,4 @@
 import { type Session } from '@/lib/auth'
-import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
 const ROLE_LABEL: Record<string, string> = {
@@ -20,9 +19,9 @@ export function Topbar({ session }: { session: Session }) {
       </span>
       <span className="text-[13px] text-foreground font-medium">{session.name}</span>
       <div className="h-3.5 w-px bg-border mx-0.5" />
-      <Button asChild variant="ghost" size="sm" className="text-[12px] text-muted-foreground hover:text-foreground h-7 px-2.5 rounded-lg">
-        <Link href="/api/auth/logout">Sign out</Link>
-      </Button>
+      <Link href="/api/auth/logout" className="text-[12px] text-muted-foreground hover:text-foreground transition-colors px-2.5 py-1">
+        Sign out
+      </Link>
     </header>
   )
 }

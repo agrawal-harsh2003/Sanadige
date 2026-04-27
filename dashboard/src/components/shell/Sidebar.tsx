@@ -52,7 +52,7 @@ export function Sidebar({ role, name }: { role: Role; name?: string }) {
               className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${
                 active
                   ? 'bg-white/10 text-sidebar-foreground'
-                  : 'text-sidebar-foreground/90 hover:text-sidebar-foreground hover:bg-white/6'
+                  : 'text-white/75 hover:text-white hover:bg-white/6'
               }`}
             >
               {active && (
@@ -61,7 +61,7 @@ export function Sidebar({ role, name }: { role: Role; name?: string }) {
               <Icon
                 size={15}
                 strokeWidth={active ? 2 : 1.5}
-                className={`shrink-0 transition-colors ${active ? 'text-[oklch(0.585_0.135_44)]' : 'text-sidebar-foreground/80 group-hover:text-sidebar-foreground'}`}
+                className={`shrink-0 transition-colors ${active ? 'text-[oklch(0.585_0.135_44)]' : 'text-white/60 group-hover:text-white'}`}
               />
               <span>{item.label}</span>
             </Link>

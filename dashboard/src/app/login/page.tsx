@@ -61,7 +61,10 @@ export default function LoginPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idToken }),
       })
-      if (!res.ok) throw new Error('Session creation failed — you may not be registered as staff')
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error ?? 'Session creation failed')
+      }
       router.push('/dashboard')
     } catch (err: unknown) {
       setError((err as Error).message ?? 'Invalid OTP')

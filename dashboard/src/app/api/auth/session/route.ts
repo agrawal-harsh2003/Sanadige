@@ -22,8 +22,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true })
   } catch (err) {
-    console.error('[session] Cookie creation failed:', err)
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[session] Cookie creation failed:', msg)
+    return NextResponse.json({ error: msg }, { status: 401 })
   }
 }
 

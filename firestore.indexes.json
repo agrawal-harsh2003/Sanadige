@@ -60,6 +60,14 @@
         { "fieldPath": "checked_in_at", "order": "ASCENDING" },
         { "fieldPath": "datetime", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "bookings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "held_until", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

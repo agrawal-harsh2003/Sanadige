@@ -82,10 +82,10 @@ export function BookingsTable({ bookings, date }: { bookings: Booking[]; date: s
   }
 
   function handleCheckIn(b: Booking) {
-    startTransition(async () => {
-      await updateBookingStatus(b.id, 'checked_in')
-      setSeatTarget({ id: b.id, guest_name: b.guest_name, party_size: b.party_size, floor: b.floor, booking_ref: b.booking_ref })
-    })
+    // Open drawer immediately; fire status update in background.
+    // assignTableToBooking will move the booking to 'seated' when a table is picked.
+    setSeatTarget({ id: b.id, guest_name: b.guest_name, party_size: b.party_size, floor: b.floor, booking_ref: b.booking_ref })
+    startTransition(() => updateBookingStatus(b.id, 'checked_in'))
   }
 
   function handleSeat(b: Booking) {

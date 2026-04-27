@@ -44,6 +44,77 @@ export async function sendBookingConfirmationTemplate(
   })
 }
 
+export async function sendReminderTemplate(
+  to: string,
+  params: { name: string; time: string; party: string; floor: string; ref: string }
+): Promise<void> {
+  await post({
+    messaging_product: 'whatsapp',
+    to,
+    type: 'template',
+    template: {
+      name: 'sanadige_booking_reminder_2h',
+      language: { code: 'en' },
+      components: [{
+        type: 'body',
+        parameters: [
+          { type: 'text', text: params.name },
+          { type: 'text', text: params.time },
+          { type: 'text', text: params.party },
+          { type: 'text', text: params.floor },
+          { type: 'text', text: params.ref },
+        ],
+      }],
+    },
+  })
+}
+
+export async function sendDayOfTemplate(
+  to: string,
+  params: { time: string; floor: string }
+): Promise<void> {
+  await post({
+    messaging_product: 'whatsapp',
+    to,
+    type: 'template',
+    template: {
+      name: 'sanadige_dayof_reminder',
+      language: { code: 'en' },
+      components: [{
+        type: 'body',
+        parameters: [
+          { type: 'text', text: params.time },
+          { type: 'text', text: params.floor },
+        ],
+      }],
+    },
+  })
+}
+
+export async function sendPostMealFeedbackTemplate(
+  to: string,
+  params: { name: string }
+): Promise<void> {
+  await post({
+    messaging_product: 'whatsapp',
+    to,
+    type: 'template',
+    template: {
+      name: 'sanadige_post_meal_feedback',
+      language: { code: 'en' },
+      components: [
+        {
+          type: 'body',
+          parameters: [{ type: 'text', text: params.name }],
+        },
+        { type: 'button', sub_type: 'quick_reply', index: '0', parameters: [{ type: 'payload', payload: 'fb_excellent' }] },
+        { type: 'button', sub_type: 'quick_reply', index: '1', parameters: [{ type: 'payload', payload: 'fb_good' }] },
+        { type: 'button', sub_type: 'quick_reply', index: '2', parameters: [{ type: 'payload', payload: 'fb_ok' }] },
+      ],
+    },
+  })
+}
+
 export interface WaButton { id: string; title: string }
 
 export async function sendButtons(to: string, body: string, buttons: WaButton[]): Promise<void> {

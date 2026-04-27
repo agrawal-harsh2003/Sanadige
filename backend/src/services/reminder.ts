@@ -1,6 +1,6 @@
 import cron from 'node-cron'
 import { db } from '../lib/firebase'
-import { sendWhatsAppMessage, sendButtons } from '../lib/whatsapp'
+import { sendWhatsAppMessage, sendReminderTemplate, sendDayOfTemplate, sendPostMealFeedbackTemplate } from '../lib/whatsapp'
 
 const floorLabel: Record<string, string> = {
   terrace: 'Terrace',
@@ -39,20 +39,14 @@ async function sendBookingReminders(): Promise<void> {
 
   for (const doc of snap.docs) {
     const b = doc.data()
-    const localTime = fmtTimeIST(b.datetime)
-    const message = [
-      `🌊 Your table at *Sanadige* is in 2 hours!`,
-      ``,
-      `📅 *Tonight · ${localTime}*`,
-      `👥 ${b.party_size} guests · ${floorLabel[b.floor] ?? b.floor}`,
-      `🔖 Ref: ${b.booking_ref}`,
-      ``,
-      `Need to change or cancel? Reply *cancel* or call us at +91 91678 85275.`,
-      `We look forward to seeing you! 🙏`,
-    ].join('\n')
-
     try {
-      await sendWhatsAppMessage(b.whatsapp_id, message)
+      await sendReminderTemplate(b.whatsapp_id, {
+        name:  b.guest_name,
+        time:  fmtTimeIST(b.datetime),
+        party: String(b.party_size),
+        floor: floorLabel[b.floor] ?? b.floor,
+        ref:   b.booking_ref,
+      })
       await doc.ref.update({ reminder_sent_at: new Date().toISOString() })
       console.log(`[reminder] Reminder sent for ${b.booking_ref}`)
     } catch (err) {
@@ -77,20 +71,8 @@ async function sendPostMealFeedback(): Promise<void> {
 
   for (const doc of snap.docs) {
     const b = doc.data()
-    const message = [
-      `🙏 Thank you for dining with us tonight, *${b.guest_name}*!`,
-      ``,
-      `We hope your meal was everything you hoped for. 🌊`,
-      ``,
-      `How was your experience at Sanadige?`,
-    ].join('\n')
-
     try {
-      await sendButtons(b.whatsapp_id, message, [
-        { id: 'fb_excellent', title: '⭐⭐⭐⭐⭐ Exceptional' },
-        { id: 'fb_good', title: '⭐⭐⭐⭐ Very Good' },
-        { id: 'fb_ok', title: '💬 Leave feedback' },
-      ])
+      await sendPostMealFeedbackTemplate(b.whatsapp_id, { name: b.guest_name })
       await doc.ref.update({ feedback_sent_at: new Date().toISOString() })
       console.log(`[reminder] Feedback sent for ${b.booking_ref}`)
     } catch (err) {
@@ -190,19 +172,13 @@ async function sendDayOfMessages(): Promise<void> {
 
   for (const doc of snap.docs) {
     const b = doc.data()
-    const time = fmtTimeIST(b.datetime)
-    const message = [
-      `🌊 *Sanadige* — your table is ready for tonight!`,
-      ``,
-      `📅 ${time} · ${floorLabel[b.floor] ?? b.floor}`,
-      `📍 28, Aradhana Enclave, Chanakyapuri, New Delhi`,
-      ``,
-      `We look forward to welcoming you 🙏`,
-    ].join('\n')
-
     try {
-      await sendWhatsAppMessage(b.whatsapp_id, message)
+      await sendDayOfTemplate(b.whatsapp_id, {
+        time:  fmtTimeIST(b.datetime),
+        floor: floorLabel[b.floor] ?? b.floor,
+      })
       await doc.ref.update({ dayof_sent_at: new Date().toISOString() })
+      console.log(`[reminder] Day-of sent for ${b.booking_ref}`)
     } catch (err) {
       console.error(`[reminder] Day-of failed for ${b.booking_ref}:`, err)
     }
@@ -257,22 +233,6 @@ export async function notifyStaffOfCancellation(params: {
   }
 }
 
-// ── Expire Held Pending Bookings (website hold) ────────────────────────────────
-
-async function expireHeldBookings(): Promise<void> {
-  const now = new Date().toISOString()
-  const snap = await db.collection('bookings')
-    .where('status', '==', 'pending')
-    .where('held_until', '<', now)
-    .limit(50)
-    .get()
-
-  for (const doc of snap.docs) {
-    await doc.ref.update({ status: 'cancelled' })
-    console.log(`[reminder] Expired held booking ${doc.data().booking_ref}`)
-  }
-}
-
 // ── Cron Registration ──────────────────────────────────────────────────────────
 
 export function startReminderJob(): void {
@@ -290,9 +250,6 @@ export function startReminderJob(): void {
   })
   cron.schedule('*/10 * * * *', () => {
     sendDayOfMessages().catch(err => console.error('[reminder] Day-of failed:', err))
-  })
-  cron.schedule('* * * * *', () => {
-    expireHeldBookings().catch(err => console.error('[reminder] Expire held failed:', err))
   })
   console.log('[reminder] Cron jobs started')
 }

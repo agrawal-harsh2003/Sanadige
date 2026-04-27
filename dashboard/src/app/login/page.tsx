@@ -92,20 +92,20 @@ export default function LoginPage() {
         </svg>
 
         <div className="relative">
-          <p className="font-cormorant text-sidebar-foreground text-[42px] font-semibold leading-none tracking-wide">
+          <p className="font-cormorant text-white text-[42px] font-semibold leading-none tracking-wide">
             Sanadige
           </p>
-          <p className="text-sidebar-foreground/40 text-[11px] mt-2 uppercase tracking-[0.2em] font-medium">
+          <p className="text-white/40 text-[11px] mt-2 uppercase tracking-[0.2em] font-medium">
             New Delhi
           </p>
         </div>
 
         <div className="relative space-y-4">
-          <p className="font-cormorant text-sidebar-foreground/80 text-[26px] font-light leading-snug">
+          <p className="font-cormorant text-white/80 text-[26px] font-light leading-snug">
             Fresh from the coast.<br />
             <span className="italic">Served with precision.</span>
           </p>
-          <p className="text-sidebar-foreground/35 text-[12px] tracking-wide uppercase font-medium">
+          <p className="text-white/35 text-[12px] tracking-wide uppercase font-medium">
             Staff Operations Portal
           </p>
         </div>
@@ -113,7 +113,7 @@ export default function LoginPage() {
         {/* Bottom decorative line */}
         <div className="relative">
           <div className="h-px bg-gradient-to-r from-transparent via-sidebar-foreground/20 to-transparent" />
-          <p className="text-sidebar-foreground/20 text-[10px] mt-4 uppercase tracking-[0.25em] font-medium text-center">
+          <p className="text-white/20 text-[10px] mt-4 uppercase tracking-[0.25em] font-medium text-center">
             Est. New Delhi
           </p>
         </div>

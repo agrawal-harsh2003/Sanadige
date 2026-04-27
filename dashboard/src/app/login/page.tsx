@@ -55,7 +55,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const result = await confirmationRef.current.confirm(otp)
-      const idToken = await result.user.getIdToken()
+      const idToken = await result.user.getIdToken(true) // force refresh so role claims are included
       const res = await fetch('/api/auth/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

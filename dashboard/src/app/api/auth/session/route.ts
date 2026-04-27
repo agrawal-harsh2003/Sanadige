@@ -8,28 +8,22 @@ export async function POST(req: NextRequest) {
 
   try {
     const adminAuth = getAdminAuth()
-
-    // Decode token to get phone number
     const decoded = await adminAuth.verifyIdToken(idToken)
     const phone = decoded.phone_number
     if (!phone) return NextResponse.json({ error: 'No phone number on token' }, { status: 401 })
 
-    // Look up staff by phone (stored without leading +)
+    // Look up staff (phone stored without leading +)
     const phoneKey = phone.startsWith('+') ? phone.slice(1) : phone
     const db = getAdminDb()
-    console.log('[session] Looking up phone:', phoneKey, '| project:', process.env.FIREBASE_PROJECT_ID)
     const snap = await db.collection('staff').where('phone', '==', phoneKey).limit(1).get()
-    console.log('[session] Staff snap size:', snap.size, '| docs:', snap.docs.map(d => d.data().phone))
-    if (snap.empty) return NextResponse.json({ error: `Not registered as staff (searched: ${phoneKey})` }, { status: 403 })
+    if (snap.empty) return NextResponse.json({ error: 'Not registered as staff' }, { status: 403 })
 
     const staff = snap.docs[0].data()
 
-    // Ensure custom claims are set (needed for getSession role check)
-    if (!decoded.role) {
-      await adminAuth.setCustomUserClaims(decoded.uid, { role: staff.role, name: staff.name })
-    }
+    // Set custom claims so future tokens include role (avoids Firestore lookup in getSession)
+    await adminAuth.setCustomUserClaims(decoded.uid, { role: staff.role, name: staff.name })
 
-    const expiresIn = 60 * 60 * 24 * 5 * 1000 // 5 days in ms
+    const expiresIn = 60 * 60 * 24 * 5 * 1000
     const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn })
 
     const cookieStore = await cookies()
@@ -44,7 +38,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
-    console.error('[session] Cookie creation failed:', msg)
+    console.error('[session]', msg)
     return NextResponse.json({ error: msg }, { status: 401 })
   }
 }

@@ -28,14 +28,14 @@ This guide takes you from zero to a fully running system. Follow every step in o
 
 ### Accounts you need before starting
 
-| Service | URL | What for |
-|---|---|---|
-| Google account | accounts.google.com | Firebase |
-| Meta developer account | developers.facebook.com | WhatsApp API |
-| Meta Business account | business.facebook.com | WhatsApp Business profile |
-| Groq account | console.groq.com | AI assistant (free tier works) |
-| Vercel account | vercel.com | Dashboard hosting |
-| AWS account (optional) | aws.amazon.com | Backend hosting (or use any VPS) |
+| Service                | URL                     | What for                         |
+| ---------------------- | ----------------------- | -------------------------------- |
+| Google account         | accounts.google.com     | Firebase                         |
+| Meta developer account | developers.facebook.com | WhatsApp API                     |
+| Meta Business account  | business.facebook.com   | WhatsApp Business profile        |
+| Groq account           | console.groq.com        | AI assistant (free tier works)   |
+| Vercel account         | vercel.com              | Dashboard hosting                |
+| AWS account (optional) | aws.amazon.com          | Backend hosting (or use any VPS) |
 
 ### Software on your machine
 
@@ -276,6 +276,7 @@ npm run dev
 ```
 
 You should see:
+
 ```
 Sanadige backend running on :3001
 [staff] Manager seeded from env: 919876543210
@@ -347,6 +348,7 @@ npm run dev
 ```
 
 You should see:
+
 ```
 ▲ Next.js 14.x.x
 - Local: http://localhost:3000
@@ -413,6 +415,7 @@ firebase firestore:indexes
 The backend auto-seeds the manager record on first startup using `MANAGER_PHONE` and `MANAGER_NAME` from `.env`. If you started the backend in step 5.4, this already ran.
 
 To verify it worked, check Firestore in the console:
+
 1. Go to https://console.firebase.google.com → your project
 2. Click **Firestore Database**
 3. Click the `staff` collection
@@ -444,6 +447,7 @@ Tables define the physical layout for the floor map. Seed them from the dashboar
 4. Click it — 24 tables are created across 4 floors (Terrace, Floor 1, Floor 2, Private)
 
 Default layout:
+
 - Terrace: T1–T8 (2–8 seats)
 - Floor 1: F1–F8 (2–8 seats)
 - Floor 2: S1–S6 (2–8 seats)
@@ -464,6 +468,7 @@ ngrok http 3001
 ```
 
 You'll see output like:
+
 ```
 Forwarding  https://a1b2c3d4.ngrok-free.app -> http://localhost:3001
 ```
@@ -529,6 +534,7 @@ We look forward to welcoming you. If you need to cancel or make changes, reply *
 ```
 
 Parameters:
+
 - `{{1}}` — Guest name
 - `{{2}}` — Date (e.g. "27 Apr 2026")
 - `{{3}}` — Time (e.g. "08:00 PM")
@@ -635,6 +641,7 @@ pm2 startup
 ```
 
 Verify it's running:
+
 ```bash
 pm2 status
 curl http://localhost:3001/health
@@ -693,6 +700,7 @@ sudo certbot --nginx -d api.yourdomain.com
 Certbot automatically edits the nginx config and sets up auto-renewal.
 
 Verify:
+
 ```bash
 curl https://api.yourdomain.com/health
 # Expected: {"ok":true,...}
@@ -731,6 +739,7 @@ Then set up nginx + Certbot as in steps A.10–A.12.
 ### 12.1 Push your code to GitHub
 
 If not already done:
+
 ```bash
 cd /path/to/sanadige
 git add .
@@ -749,6 +758,7 @@ git push -u origin main
 ### 12.3 Configure the build
 
 In the Vercel import dialog:
+
 - **Root directory**: `dashboard` (important — the app is in a subdirectory)
 - **Framework preset**: Next.js (auto-detected)
 - **Build command**: `next build` (default)
@@ -758,18 +768,18 @@ In the Vercel import dialog:
 
 Click **Environment Variables** and add every variable from your local `.env.local`:
 
-| Key | Value | Environment |
-|---|---|---|
-| `FIREBASE_PROJECT_ID` | `your-project-id` | Production, Preview, Development |
-| `FIREBASE_CLIENT_EMAIL` | `firebase-adminsdk-...` | Production, Preview, Development |
-| `FIREBASE_PRIVATE_KEY` | `"-----BEGIN PRIVATE KEY-----\n..."` | Production, Preview, Development |
-| `NEXT_PUBLIC_FIREBASE_API_KEY` | `AIzaSy...` | Production, Preview, Development |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | `your-project.firebaseapp.com` | Production, Preview, Development |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | `your-project-id` | Production, Preview, Development |
-| `NEXT_PUBLIC_FIREBASE_APP_ID` | `1:123:web:abc` | Production, Preview, Development |
-| `JWT_SECRET` | `your_random_base64_secret` | Production, Preview, Development |
-| `BACKEND_URL` | `https://api.yourdomain.com` | Production |
-| `BACKEND_URL` | `http://localhost:3001` | Development |
+| Key                                  | Value                                  | Environment                      |
+| ------------------------------------ | -------------------------------------- | -------------------------------- |
+| `FIREBASE_PROJECT_ID`              | `your-project-id`                    | Production, Preview, Development |
+| `FIREBASE_CLIENT_EMAIL`            | `firebase-adminsdk-...`              | Production, Preview, Development |
+| `FIREBASE_PRIVATE_KEY`             | `"-----BEGIN PRIVATE KEY-----\n..."` | Production, Preview, Development |
+| `NEXT_PUBLIC_FIREBASE_API_KEY`     | `AIzaSy...`                          | Production, Preview, Development |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | `your-project.firebaseapp.com`       | Production, Preview, Development |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID`  | `your-project-id`                    | Production, Preview, Development |
+| `NEXT_PUBLIC_FIREBASE_APP_ID`      | `1:123:web:abc`                      | Production, Preview, Development |
+| `JWT_SECRET`                       | `your_random_base64_secret`          | Production, Preview, Development |
+| `BACKEND_URL`                      | `https://api.yourdomain.com`         | Production                       |
+| `BACKEND_URL`                      | `http://localhost:3001`              | Development                      |
 
 > **FIREBASE_PRIVATE_KEY on Vercel**: Paste the key including the surrounding double quotes. Vercel preserves them. The `\n` characters must remain as literal `\n` — do not press Enter to create real line breaks.
 
@@ -801,11 +811,13 @@ Now that your backend is live at `https://api.yourdomain.com`, register it perma
 5. Click **Verify and save**
 
 If verification fails, check:
+
 - Your backend is running: `curl https://api.yourdomain.com/health`
 - The verify token matches exactly in both places
 - nginx is forwarding correctly
 
 Then subscribe to message events:
+
 1. Click **Manage** next to the webhook
 2. Check **messages**
 3. Click **Done**
@@ -944,6 +956,7 @@ pm2 logs sanadige-backend --lines 50
 ```
 
 Common causes:
+
 - Missing env var (the backend crashes on startup if any required var is absent)
 - Port conflict (change `PORT` in `.env` if 3001 is taken)
 - Firebase initialisation error (bad service account credentials)
@@ -964,29 +977,29 @@ sudo certbot renew --dry-run
 
 ### Backend (`backend/.env`)
 
-| Variable | Required | Description |
-|---|---|---|
-| `FIREBASE_PROJECT_ID` | Yes | Firebase project ID from service account JSON |
-| `FIREBASE_CLIENT_EMAIL` | Yes | Service account client email |
-| `FIREBASE_PRIVATE_KEY` | Yes | Service account private key (with `\n` escaping) |
-| `GROQ_API_KEY` | Yes | Groq API key starting with `gsk_` |
-| `WHATSAPP_TOKEN` | Yes | Meta WhatsApp Cloud API access token |
-| `WHATSAPP_PHONE_NUMBER_ID` | Yes | WhatsApp phone number ID from Meta |
-| `WHATSAPP_VERIFY_TOKEN` | Yes | Random secret for webhook verification |
-| `MANAGER_PHONE` | No | Phone number for auto-seeded manager (country code + number) |
-| `MANAGER_NAME` | No | Display name for auto-seeded manager (default: "Manager") |
-| `PORT` | No | Server port (default: 3000) |
+| Variable                     | Required | Description                                                  |
+| ---------------------------- | -------- | ------------------------------------------------------------ |
+| `FIREBASE_PROJECT_ID`      | Yes      | Firebase project ID from service account JSON                |
+| `FIREBASE_CLIENT_EMAIL`    | Yes      | Service account client email                                 |
+| `FIREBASE_PRIVATE_KEY`     | Yes      | Service account private key (with `\n` escaping)           |
+| `GROQ_API_KEY`             | Yes      | Groq API key starting with `gsk_`                          |
+| `WHATSAPP_TOKEN`           | Yes      | Meta WhatsApp Cloud API access token                         |
+| `WHATSAPP_PHONE_NUMBER_ID` | Yes      | WhatsApp phone number ID from Meta                           |
+| `WHATSAPP_VERIFY_TOKEN`    | Yes      | Random secret for webhook verification                       |
+| `MANAGER_PHONE`            | No       | Phone number for auto-seeded manager (country code + number) |
+| `MANAGER_NAME`             | No       | Display name for auto-seeded manager (default: "Manager")    |
+| `PORT`                     | No       | Server port (default: 3000)                                  |
 
 ### Dashboard (`dashboard/.env.local`)
 
-| Variable | Required | Description |
-|---|---|---|
-| `FIREBASE_PROJECT_ID` | Yes | Same as backend |
-| `FIREBASE_CLIENT_EMAIL` | Yes | Same as backend |
-| `FIREBASE_PRIVATE_KEY` | Yes | Same as backend |
-| `NEXT_PUBLIC_FIREBASE_API_KEY` | Yes | Web app API key from Firebase console |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Yes | `your-project.firebaseapp.com` |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Yes | Same as `FIREBASE_PROJECT_ID` |
-| `NEXT_PUBLIC_FIREBASE_APP_ID` | Yes | Web app ID from Firebase console |
-| `JWT_SECRET` | Yes | Random base64 string (32+ bytes) for session signing |
-| `BACKEND_URL` | Yes | Full URL of the Express backend (no trailing slash) |
+| Variable                             | Required | Description                                          |
+| ------------------------------------ | -------- | ---------------------------------------------------- |
+| `FIREBASE_PROJECT_ID`              | Yes      | Same as backend                                      |
+| `FIREBASE_CLIENT_EMAIL`            | Yes      | Same as backend                                      |
+| `FIREBASE_PRIVATE_KEY`             | Yes      | Same as backend                                      |
+| `NEXT_PUBLIC_FIREBASE_API_KEY`     | Yes      | Web app API key from Firebase console                |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Yes      | `your-project.firebaseapp.com`                     |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID`  | Yes      | Same as `FIREBASE_PROJECT_ID`                      |
+| `NEXT_PUBLIC_FIREBASE_APP_ID`      | Yes      | Web app ID from Firebase console                     |
+| `JWT_SECRET`                       | Yes      | Random base64 string (32+ bytes) for session signing |
+| `BACKEND_URL`                      | Yes      | Full URL of the Express backend (no trailing slash)  |

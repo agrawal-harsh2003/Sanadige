@@ -1,6 +1,6 @@
-import { logout } from '@/actions/auth'
 import { type Session } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 const ROLE_LABEL: Record<string, string> = {
   manager: 'Manager',
@@ -20,16 +20,9 @@ export function Topbar({ session }: { session: Session }) {
       </span>
       <span className="text-[13px] text-foreground font-medium">{session.name}</span>
       <div className="h-3.5 w-px bg-border mx-0.5" />
-      <form action={logout}>
-        <Button
-          variant="ghost"
-          size="sm"
-          type="submit"
-          className="text-[12px] text-muted-foreground hover:text-foreground h-7 px-2.5 rounded-lg"
-        >
-          Sign out
-        </Button>
-      </form>
+      <Button asChild variant="ghost" size="sm" className="text-[12px] text-muted-foreground hover:text-foreground h-7 px-2.5 rounded-lg">
+        <Link href="/api/auth/logout">Sign out</Link>
+      </Button>
     </header>
   )
 }

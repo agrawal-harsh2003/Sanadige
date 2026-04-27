@@ -24,9 +24,11 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const auth = getClientAuth()
-      if (!recaptchaRef.current) {
-        recaptchaRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' })
+      if (recaptchaRef.current) {
+        recaptchaRef.current.clear()
+        recaptchaRef.current = null
       }
+      recaptchaRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' })
       const digits = phone.replace(/\D/g, '')
       const e164 = digits.length === 10 ? `+91${digits}` : `+${digits}`
       const result = await signInWithPhoneNumber(auth, e164, recaptchaRef.current)
@@ -34,6 +36,7 @@ export default function LoginPage() {
       setStep('otp')
     } catch (err: unknown) {
       setError((err as Error).message ?? 'Failed to send OTP')
+      if (recaptchaRef.current) { recaptchaRef.current.clear(); recaptchaRef.current = null }
     } finally {
       setLoading(false)
     }

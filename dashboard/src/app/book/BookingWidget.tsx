@@ -81,15 +81,15 @@ export function BookingWidget() {
     return (
       <div className="w-full max-w-md bg-white rounded-2xl shadow-sm ring-1 ring-black/5 p-8 text-center space-y-4">
         <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-3xl">✅</div>
-        <h2 className="text-2xl font-bold text-[#1a3a38]">Booking Requested</h2>
-        <p className="text-[#8a7f75]">Your table has been held for 15 minutes pending confirmation from our team.</p>
+        <h2 className="text-2xl font-bold text-[#1a3a38]">Booking Confirmed</h2>
+        <p className="text-[#8a7f75]">Your table is booked. A WhatsApp confirmation has been sent to you.</p>
         <div className="bg-[#f8f3ec] rounded-xl p-4 text-left space-y-1.5 text-sm">
           <p><span className="text-[#8a7f75]">Name:</span> <strong>{details.name}</strong></p>
           <p><span className="text-[#8a7f75]">Date:</span> <strong>{date}</strong> at <strong>{selectedSlot?.time}</strong></p>
           <p><span className="text-[#8a7f75]">Party:</span> <strong>{partySize} guests</strong></p>
           <p><span className="text-[#8a7f75]">Ref:</span> <strong className="text-[#1a3a38]">{booking.booking_ref}</strong></p>
         </div>
-        <p className="text-sm text-[#8a7f75]">We will send a WhatsApp confirmation to <strong>{details.phone}</strong> shortly.</p>
+        <p className="text-sm text-[#8a7f75]">You will receive reminders on WhatsApp at <strong>{details.phone}</strong> before your visit.</p>
       </div>
     )
   }

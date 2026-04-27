@@ -4,6 +4,8 @@ import { updateBookingStatus } from '@/actions/bookings'
 import { getClientDb } from '@/lib/firebase-client'
 import { collection, query, where, onSnapshot } from 'firebase/firestore'
 import { Button } from '@/components/ui/button'
+import { SeatingDrawer } from '@/components/bookings/SeatingDrawer'
+import type { SeatTargetBooking } from '@/components/bookings/SeatingDrawer'
 
 function formatIST(datetime: string) {
   const d = new Date(datetime)
@@ -52,6 +54,7 @@ export function BookingsTable({ bookings, date }: { bookings: Booking[]; date: s
   const [expanded, setExpanded] = useState<string | null>(null)
   const [, startTransition] = useTransition()
   const [live, setLive] = useState(false)
+  const [seatTarget, setSeatTarget] = useState<SeatTargetBooking | null>(null)
 
   useEffect(() => { setRows(bookings) }, [bookings])
 
@@ -78,66 +81,87 @@ export function BookingsTable({ bookings, date }: { bookings: Booking[]; date: s
     startTransition(() => updateBookingStatus(id, status))
   }
 
+  function handleCheckIn(b: Booking) {
+    startTransition(async () => {
+      await updateBookingStatus(b.id, 'checked_in')
+      setSeatTarget({ id: b.id, guest_name: b.guest_name, party_size: b.party_size, floor: b.floor, booking_ref: b.booking_ref })
+    })
+  }
+
+  function handleSeat(b: Booking) {
+    setSeatTarget({ id: b.id, guest_name: b.guest_name, party_size: b.party_size, floor: b.floor, booking_ref: b.booking_ref })
+  }
+
   return (
-    <div className="bg-card shadow-sm ring-1 ring-black/[0.04] rounded-2xl overflow-hidden">
-      <div className="flex items-center justify-end gap-1.5 px-4 py-2 border-b border-border bg-muted/20">
-        <span className={`w-1.5 h-1.5 rounded-full ${live ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground/30'}`} />
-        <span className="text-[10px] text-muted-foreground font-medium">{live ? 'Live' : 'Connecting\u2026'}</span>
-      </div>
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-border bg-muted/30">
-            {['Time', 'Guest', 'Party', 'Floor', 'Occasion', 'Status', 'Actions'].map(h => (
-              <th key={h} className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((b, i) => (
-            <React.Fragment key={b.id}>
-              <tr className={`border-b border-border/60 hover:bg-muted/20 cursor-pointer transition-colors ${i % 2 === 0 ? '' : 'bg-muted/[0.04]'}`}
-                onClick={() => setExpanded(expanded === b.id ? null : b.id)}>
-                <td className="px-4 py-3 font-cormorant text-[17px] font-semibold text-primary leading-none">{formatIST(b.datetime)}</td>
-                <td className="px-4 py-3 font-medium text-[13px] text-foreground">{b.guest_name}</td>
-                <td className="px-4 py-3 text-[13px] text-foreground">{b.party_size}</td>
-                <td className="px-4 py-3">
-                  <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${FLOOR_BADGE[b.floor] ?? 'bg-muted text-muted-foreground'}`}>{FLOOR_LABEL[b.floor] ?? b.floor}</span>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">{b.occasion ?? '\u2014'}</td>
-                <td className="px-4 py-3">
-                  <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_BADGE[b.status] ?? 'bg-muted text-muted-foreground'}`}>{STATUS_LABEL[b.status] ?? b.status}</span>
-                </td>
-                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                  <div className="flex gap-2 flex-wrap">
-                    {b.status === 'confirmed' && <Button size="sm" variant="outline" onClick={() => transition(b.id, 'checked_in')} className="text-xs border-blue-200 text-blue-700 hover:bg-blue-50">Check In</Button>}
-                    {b.status === 'checked_in' && <Button size="sm" variant="outline" onClick={() => transition(b.id, 'seated')} className="text-xs border-primary/30 text-primary hover:bg-primary/5">Seat</Button>}
-                    {b.status === 'seated' && <Button size="sm" variant="outline" onClick={() => transition(b.id, 'completed')} className="text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50">Complete</Button>}
-                    {(b.status === 'confirmed' || b.status === 'checked_in' || b.status === 'seated') && (
-                      <Button size="sm" variant="outline" onClick={() => { if (confirm('Cancel this booking?')) transition(b.id, 'cancelled') }} className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50">Cancel</Button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-              {expanded === b.id && (
-                <tr className="bg-muted/[0.06] border-b border-border/60">
-                  <td colSpan={7} className="px-6 py-4">
-                    <div className="flex flex-wrap gap-x-6 gap-y-1.5 text-[12px]">
-                      <span><span className="text-muted-foreground">Ref</span> <span className="font-medium text-foreground">{b.booking_ref}</span></span>
-                      <span><span className="text-muted-foreground">Phone</span> <span className="font-medium text-foreground">{b.phone}</span></span>
-                      {b.channel && <span><span className="text-muted-foreground">Channel</span> <span className="font-medium text-foreground capitalize">{b.channel}</span></span>}
-                      {b.special_notes && <span><span className="text-muted-foreground">Notes</span> <span className="font-medium text-foreground">{b.special_notes}</span></span>}
+    <>
+      <div className="bg-card shadow-sm ring-1 ring-black/[0.04] rounded-2xl overflow-hidden">
+        <div className="flex items-center justify-end gap-1.5 px-4 py-2 border-b border-border bg-muted/20">
+          <span className={`w-1.5 h-1.5 rounded-full ${live ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground/30'}`} />
+          <span className="text-[10px] text-muted-foreground font-medium">{live ? 'Live' : 'Connecting\u2026'}</span>
+        </div>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/30">
+              {['Time', 'Guest', 'Party', 'Floor', 'Occasion', 'Status', 'Actions'].map(h => (
+                <th key={h} className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((b, i) => (
+              <React.Fragment key={b.id}>
+                <tr className={`border-b border-border/60 hover:bg-muted/20 cursor-pointer transition-colors ${i % 2 === 0 ? '' : 'bg-muted/[0.04]'}`}
+                  onClick={() => setExpanded(expanded === b.id ? null : b.id)}>
+                  <td className="px-4 py-3 font-cormorant text-[17px] font-semibold text-primary leading-none">{formatIST(b.datetime)}</td>
+                  <td className="px-4 py-3 font-medium text-[13px] text-foreground">{b.guest_name}</td>
+                  <td className="px-4 py-3 text-[13px] text-foreground">{b.party_size}</td>
+                  <td className="px-4 py-3">
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${FLOOR_BADGE[b.floor] ?? 'bg-muted text-muted-foreground'}`}>{FLOOR_LABEL[b.floor] ?? b.floor}</span>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{b.occasion ?? '\u2014'}</td>
+                  <td className="px-4 py-3">
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_BADGE[b.status] ?? 'bg-muted text-muted-foreground'}`}>{STATUS_LABEL[b.status] ?? b.status}</span>
+                  </td>
+                  <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                    <div className="flex gap-2 flex-wrap">
+                      {b.status === 'confirmed' && (
+                        <Button size="sm" variant="outline" onClick={() => handleCheckIn(b)} className="text-xs border-blue-200 text-blue-700 hover:bg-blue-50">Check In</Button>
+                      )}
+                      {b.status === 'checked_in' && (
+                        <Button size="sm" variant="outline" onClick={() => handleSeat(b)} className="text-xs border-primary/30 text-primary hover:bg-primary/5">Seat</Button>
+                      )}
+                      {b.status === 'seated' && (
+                        <Button size="sm" variant="outline" onClick={() => transition(b.id, 'completed')} className="text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50">Complete</Button>
+                      )}
+                      {(b.status === 'confirmed' || b.status === 'checked_in' || b.status === 'seated') && (
+                        <Button size="sm" variant="outline" onClick={() => { if (confirm('Cancel this booking?')) transition(b.id, 'cancelled') }} className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50">Cancel</Button>
+                      )}
                     </div>
-                    <a href={`https://wa.me/${b.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="inline-block mt-2 text-[11px] text-accent hover:text-accent/80 transition-colors">
-                      Open WhatsApp →
-                    </a>
                   </td>
                 </tr>
-              )}
-            </React.Fragment>
-          ))}
-          {rows.length === 0 && <tr><td colSpan={7} className="px-4 py-16 text-center text-muted-foreground">No bookings found</td></tr>}
-        </tbody>
-      </table>
-    </div>
+                {expanded === b.id && (
+                  <tr className="bg-muted/[0.06] border-b border-border/60">
+                    <td colSpan={7} className="px-6 py-4">
+                      <div className="flex flex-wrap gap-x-6 gap-y-1.5 text-[12px]">
+                        <span><span className="text-muted-foreground">Ref</span> <span className="font-medium text-foreground">{b.booking_ref}</span></span>
+                        <span><span className="text-muted-foreground">Phone</span> <span className="font-medium text-foreground">{b.phone}</span></span>
+                        {b.channel && <span><span className="text-muted-foreground">Channel</span> <span className="font-medium text-foreground capitalize">{b.channel}</span></span>}
+                        {b.special_notes && <span><span className="text-muted-foreground">Notes</span> <span className="font-medium text-foreground">{b.special_notes}</span></span>}
+                      </div>
+                      <a href={`https://wa.me/${b.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="inline-block mt-2 text-[11px] text-accent hover:text-accent/80 transition-colors">
+                        Open WhatsApp →
+                      </a>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))}
+            {rows.length === 0 && <tr><td colSpan={7} className="px-4 py-16 text-center text-muted-foreground">No bookings found</td></tr>}
+          </tbody>
+        </table>
+      </div>
+
+      <SeatingDrawer booking={seatTarget} onClose={() => setSeatTarget(null)} />
+    </>
   )
 }

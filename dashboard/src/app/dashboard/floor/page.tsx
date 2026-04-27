@@ -89,7 +89,14 @@ export default async function FloorPage() {
   const session = await getSession()
   if (!session) redirect('/login')
 
-  const { tablesWithStatus, needsTable, hasNoTables } = await getFloorData()
+  let floorData: Awaited<ReturnType<typeof getFloorData>>
+  try {
+    floorData = await getFloorData()
+  } catch (err) {
+    console.error('[floor] getFloorData error:', err)
+    floorData = { tablesWithStatus: [], needsTable: [], hasNoTables: true }
+  }
+  const { tablesWithStatus, needsTable, hasNoTables } = floorData
 
   return (
     <div className="space-y-6">

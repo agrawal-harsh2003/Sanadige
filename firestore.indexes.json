@@ -77,6 +77,14 @@
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "datetime", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "bookings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "datetime", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
